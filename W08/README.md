@@ -1,0 +1,200 @@
+# Week 8 — Krafton Engine: Shadow Mapping
+
+> DirectX 11 기반 커스텀 엔진에 Directional CSM과 Spot / Point Light Shadow Atlas를 구축한 프로젝트입니다.  
+> 이 저장소는 [원본 협업 프로젝트](https://github.com/shimwoojin/Jungle_Week8_Team2)의 결과물 중 **Rocketstein (Hyungjun Kim)**의 작업을 중심으로 정리한 포트폴리오 스냅샷입니다.
+
+## 프로젝트 개요
+
+Week 7의 라이팅·Light Culling 렌더러를 기반으로, Directional / Spot / Point Light가 실제 Scene Geometry에 동적 그림자를 투영하도록 Shadow Rendering Pipeline을 확장했습니다. Directional Light에는 4단계 Cascaded Shadow Map을, 다수의 Spot / Point Light에는 화면 기여도에 따라 해상도를 배분하는 Shadow Atlas를 적용했습니다.
+
+최종 팀 결과물은 Hard Shadow, PCF, VSM 필터와 다중 Atlas Page, Shadow Caster Frustum Culling, Shadow Map Debug View를 지원합니다. 
+
+- **개발 기간:** 2026.04.23 ~ 2026.04.29
+- **개발 환경:** Windows, Visual Studio 2022, C++20
+- **주요 기술:** DirectX 11, HLSL, Shadow Mapping, CSM, PCF, VSM, Dear ImGui
+- **담당 영역:** Spot / Point Shadow Atlas, 적응형 해상도·Batch Allocation, Shadow 품질·리소스 안정화, InterpToMovement 통합
+- **프로젝트 형태:** 팀 프로젝트 / 개인 기여 중심 포트폴리오
+
+## 주요 기능
+
+- Directional Light용 4-Cascade Shadow Map과 Cascade Blend
+- Spot Light용 2D Shadow Atlas와 Point Light의 Cube Face Atlas
+- 화면 기여도 기반 Shadow Resolution 평가와 Power-of-Two Tile 할당
+- Atlas 용량에 따른 다중 Page 구성과 최대 Page 초과 시 해상도 축소
+- Hard / PCF / VSM Shadow Filter와 Separable Gaussian Blur
+- Light별 Bias, Slope Bias, Normal Bias, Sharpen, Resolution Scale 설정
+- Shadow Caster Frustum Culling과 렌더링 통계
+- CSM / Spot / Point Shadow Map, Atlas Page와 할당 Region을 확인하는 Debug Widget
+- Control Point를 따라 이동하는 `UInterpToMovementComponent`
+- Scene 편집·직렬화, Picking, Gizmo와 멀티패스 렌더링
+
+## 담당 작업
+
+### 1. Buddy Allocation 기반 Shadow Atlas QuadTree
+
+- Atlas 전체를 Root Node로 두고 요청 크기까지 4분할하는 Buddy 방식의 `FShadowAtlasQuadTree` 구현
+- 각 Node에 위치, 해상도, 점유·분할 상태와 자식 인덱스를 저장하고 가장 적합한 Tile을 재귀적으로 탐색
+- 할당 결과를 `FAtlasRegion`의 Pixel 좌표와 크기로 반환해 Viewport 및 Shader UV 변환에 사용할 수 있도록 구성
+- Power-of-Two가 아닌 요청으로 유효한 영역을 찾지 못하던 문제를 보정하고 최소 해상도 Bound 추가
+- 선형 길이가 아닌 면적을 기준으로 `RemainingSpace`를 추적하도록 수정
+
+대표 커밋: [`b50951fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b50951fc52101e79e1aed10d44b8636aaecee9a3), [`b7e873e5`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b7e873e5bd8ad04f72a89d2f267bf976f00b5d7d), [`908b85fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/908b85fc86f060e87ef0b331842fe841851074c8), [`90021817`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/90021817ec43c3ea3f640ead3f6484e1ab4fd408)
+
+### 2. 화면 기여도 기반 적응형 해상도와 Batch Allocation
+
+- 카메라 위치·방향·FOV와 Light의 Radius를 이용해 화면에 투영되는 면적을 추정
+- 투영 면적에 Color Luminance, Intensity, `ShadowResolutionScale`을 반영해 Light별 요청 해상도 산출
+- 요청 해상도를 가장 가까운 Power-of-Two로 정규화하고 Atlas 최소·최대 범위로 제한
+- Light 요청을 Batch에 모아 큰 Tile부터 할당해 작은 요청이 공간을 먼저 파편화하는 현상 완화
+- 개별 `Add`마다 Region을 즉시 생성하던 흐름을 `AddToBatch → CommitBatch`로 변경
+
+대표 커밋: [`596285f3`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/596285f3f98449d8da84f14b737a94947f74f706), [`56b33649`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/56b33649b73e8ce1b94ee0464e26b8ef27357b7c), [`54065540`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/540655405e1d6d8679bcae784e1999a319781629), [`6389d443`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/6389d44342b79a675b3b3839db2dbf15ee8d9f01)
+
+### 3. Spot Light Shadow Atlas 렌더 경로
+
+- `ShadowMapPass`에 Spot Light의 View / Projection, Atlas Viewport와 Depth Rendering 경로 연결
+- `FSpotLightParams`를 Atlas 평가 입력으로 사용하고 Light별 Resolution Scale 적용
+- 여러 Spot Light가 동시에 Shadow를 투영하지 못하던 Batch·Region 대응 오류 수정
+- Spot Atlas Texture와 Shadow Data를 Shader Resource Slot에 연결하고 Atlas Region Debug Overlay 추가
+- Shadow Depth Pass에서 Front-face Culling을 사용하도록 변경하고 VSM 경로의 리소스 Hazard 수정
+
+대표 커밋: [`aa82dbc6`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/aa82dbc69b592bdd7799af92ba63fa0c27bfce6d), [`50b70965`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/50b70965fd31512ea99fb9f72914b684602eaed3), [`c4feee67`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/c4feee6703c7b692e59d8f457cb8376e617ddce8), [`9b8a9881`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9b8a98812095744fac42182c783257e380f8e367), [`28e7b91c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/28e7b91c7f67fd971e9e42f874ffb55861a0c199)
+
+### 4. Point Light Cube Face Atlas
+
+- 공통 Node 할당 로직을 `FAtlasQuadTreeBase`로 분리하고 Spot / Point 전용 평가 클래스로 확장
+- Point Light 한 개의 +X, -X, +Y, -Y, +Z, -Z 여섯 방향을 독립 Atlas Region으로 할당
+- `FAtlasRegion`에 Light Index와 Cube Face Orientation을 기록해 GPU Shadow Data와 연결
+- 기존 `Texture2DArray` 기반 Point Shadow를 Atlas 방식으로 전환하고 화면 기여도 기반 해상도 평가 적용
+- Point Atlas의 Region Frame 표시, 해상도 평가식과 `ShadowResolutionScale` 동작 보정
+
+대표 커밋: [`37a1980d`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/37a1980d140e6c4df70dabc859e0c2345f72ca53), [`46668f33`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/46668f337c300a5181f52195b76a671e847f41e0), [`0ee6f506`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/0ee6f506e0f650572aa0c7dbf9d2ecb80993952f), [`3693075c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/3693075c5afa8fda93e77cda0be8c8cc357ebcfa), [`85ca1401`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/85ca1401af33636cfd8ee8105966b4f182d0b824)
+
+### 5. Shadow 품질 보정과 엔진 통합
+
+- Directional / Spot / Point Light의 Normal Bias 값을 별도 Constant Buffer 경로로 전달
+- Normal Bias가 GPU Upload 전에 갱신되지 않거나 다른 Light의 상수를 참조하던 문제 수정
+- Light Property에서 음수 Bias를 설정할 수 있도록 편집 범위를 보정
+- 이전 Frame의 Shadow SRV가 Depth Target과 동시에 바인딩되어 발생하는 Direct3D 11 Read / Write Hazard 해결
+- 이전 주차의 `UInterpToMovementComponent`를 발전된 엔진 구조로 이식하고 Property UI, `Vec3Array` 직렬화와 Demo Scene에 재연결
+- Spotlight / Point Atlas와 InterpToMovement를 점검할 수 있는 테스트·발표용 `w8demo.Scene` 구성
+
+대표 커밋: [`059f72ef`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/059f72ef74062c09c7af4d9b0ea0e33e28abdb5b), [`8fd509d9`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/8fd509d9609c655a0cc86865ed4e091e881690c8), [`fd58635a`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/fd58635a9895b6301aafc12e2523990915762d1b), [`9eeaaa58`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9eeaaa5886bc05a1616c7a5b2070568a9f55520e), [`38a0e89f`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/38a0e89f48afbb6f1dd1d2a42ea59ec1f5db1104)
+
+## Shadow 렌더링 구조
+
+```text
+SceneEnvironment
+ Directional / Spot / Point Lights
+              │
+              ▼
+   Shadow Light Frustum Culling
+              │
+      ┌───────┴────────┐
+      ▼                ▼
+Directional CSM   Spot / Point Lights
+ 4 Cascades       화면 기여도 평가
+      │                │
+      │         Page Grouping
+      │                │
+      │         QuadTree Batch Allocation
+      │          Spot 1면 / Point 6면
+      └───────┬────────┘
+              ▼
+      Shadow Depth Pass
+     Front Cull + Caster Cull
+              │
+       ┌──────┴──────┐
+       ▼             ▼
+ Hard / PCF       VSM Moments
+ Depth SRV       Gaussian Blur
+       └──────┬──────┘
+              ▼
+   Forward Lighting Shader
+```
+
+Spot / Point Atlas는 각 Frame에 보이는 Shadow Light의 예상 해상도를 계산합니다. 최종 구조에서는 Atlas 면적 예산으로 Light를 Page에 나누고, Page 수 제한을 넘으면 해상도를 비례 축소한 뒤 각 Page에서 큰 Tile부터 QuadTree에 배치합니다.
+
+## Shadow 설정과 디버깅
+
+`KraftonEngine/Settings/ProjectSettings.ini`의 기본 Shadow 설정은 다음과 같습니다.
+
+| 설정 | 기본값 | 설명 |
+| --- | ---: | --- |
+| `CSMResolution` | 2048 | Directional CSM의 Cascade 해상도 |
+| `SpotAtlasResolution` | 4096 | Spot Atlas 한 Page의 크기 |
+| `PointAtlasResolution` | 4096 | Point Atlas 한 Page의 크기 |
+| `MaxSpotAtlasPages` | 4 | Spot Atlas 최대 Page 수 |
+| `MaxPointAtlasPages` | 4 | Point Atlas 최대 Page 수 |
+| `bShadows` | `true` | 전체 Shadow 활성화 여부 |
+
+에디터의 **Shadow Map Debug** 창에서는 다음 항목을 확인할 수 있습니다.
+
+- CSM의 C0 ~ C3 Cascade와 Near / Far 범위
+- Spot / Point Atlas의 Page별 Depth
+- Atlas에 할당된 Light Index, Region 경계와 Tile 해상도
+- 선택한 Spot Light의 개별 Region과 Point Light의 6개 Cube Face
+- Linear / Power 시각화와 Brightness 조정
+
+## 프로젝트 구조
+
+```text
+.
+├─ KraftonEngine.sln
+├─ KraftonEngine/
+│  ├─ Asset/Scene/                    # 테스트·Demo Scene
+│  ├─ Settings/                       # Editor / Project 설정
+│  ├─ Shaders/
+│  │  ├─ Common/ShadowSampling.hlsli
+│  │  ├─ Lighting/ShadowDepth.hlsl
+│  │  └─ PostProcess/ShadowMapVis.hlsl
+│  └─ Source/
+│     ├─ Editor/UI/                   # Shadow Map Debug, Project Settings
+│     └─ Engine/
+│        ├─ Component/Light/          # Directional / Spot / Point 설정
+│        ├─ Component/Movement/       # InterpToMovement
+│        ├─ Profiling/                # Shadow Stats
+│        └─ Render/
+│           ├─ RenderPass/ShadowMapPass.*
+│           ├─ Resource/              # Shadow GPU Resource
+│           └─ Shadow/                # Atlas QuadTree 구현
+├─ Scripts/
+├─ GenerateProjectFiles.bat
+├─ DemoBuild.bat
+└─ ReleaseBuild.bat
+```
+
+## 빌드 및 실행
+
+### 요구 환경
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143, Windows 10 SDK
+- DirectX 11 지원 GPU
+- NuGet Package Restore
+
+### 빌드
+
+1. 필요하면 `GenerateProjectFiles.bat`을 실행해 Visual Studio 프로젝트 파일을 생성합니다.
+2. `KraftonEngine.sln`을 Visual Studio에서 엽니다.
+3. NuGet Package를 복원합니다.
+4. `Debug | x64` 또는 `Release | x64`로 빌드하고 실행합니다.
+
+배포용 실행 파일과 리소스는 `DemoBuild.bat` 또는 `ReleaseBuild.bat`으로 구성할 수 있습니다.
+
+## 현재 상태와 한계
+
+- Windows + DirectX 11 환경을 대상으로 합니다.
+- 기본 Atlas는 Page당 4096×4096, Spot / Point 각각 최대 4 Page로 설정되어 있습니다.
+- Point Light 한 개는 여섯 Cube Face Region을 사용하므로 동일 해상도의 Spot Light보다 Atlas 면적을 더 많이 소비합니다.
+- Atlas는 매 Frame Reset 후 큰 요청부터 Greedy하게 다시 할당하므로 Persistent Allocation 방식은 아닙니다.
+- Page 제한을 초과하면 전체 요청 해상도를 축소하므로 Light가 매우 많을 때 개별 Shadow 품질이 낮아질 수 있습니다.
+- Directional CSM과 VSM Resource 구조, 선택 Light 단위 Debug 확장과 다중 Page 최종 통합에는 팀원의 작업도 포함되어 있습니다.
+
+## 참고
+
+- 전체 협업 이력과 팀 단위 변경사항은 [shimwoojin/Jungle_Week8_Team2](https://github.com/shimwoojin/Jungle_Week8_Team2)에서 확인할 수 있습니다.
+- 비공개 저장소의 기존 스냅샷은 원본 `main`과 648개 Source Blob 중 `KraftonEngine/Settings/Editor.ini` 한 파일만 달랐으며, 루트 README는 없었습니다.
+- Week 8 기간 중 Rocketstein 작성자 정보로 기록된 57개 커밋에는 Merge·Checkpoint와 팀 변경을 합친 Squash Commit이 포함되어 있어, 담당 작업은 커밋 메시지뿐 아니라 실제 변경 파일과 최종 코드를 함께 확인해 정리했습니다.
+- Directional CSM과 초기 Point Shadow 등 팀원이 작성한 기능은 프로젝트의 **주요 기능**에는 포함하되 Rocketstein의 개인 담당으로 기재하지 않았습니다.
