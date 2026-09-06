@@ -1,0 +1,80 @@
+#pragma once
+
+#include "GameFramework/Controller/Controller.h"
+#include "GameFramework/Camera/CameraTypes.h"
+
+#include "Object/Ptr/WeakObjectPtr.h"
+#include "Source/Engine/GameFramework/GameMode/PlayerController.generated.h"
+class APawn;
+class APlayerCameraManager;
+struct FInputSystemSnapshot;
+
+// ============================================================
+// APlayerController — 플레이어의 의도(Possess/입력)를 Pawn에 전달
+//
+// Pawn은 "조종 가능한 액터"이고, PlayerController는 "조종자".
+// World당 (지금은) 1개만 spawn되며 GameMode가 spawn/관리.
+// ============================================================
+UCLASS()
+class APlayerController : public AController
+{
+public:
+	GENERATED_BODY()
+	APlayerController() = default;
+	~APlayerController() override = default;
+
+	// E.2/1: BeginPlay 에서 World->GetCameraManager() 캐싱. E.3 에서 직접 SpawnActor 로 전환 예정.
+	void BeginPlay() override;
+
+	// Pawn을 점유한다. 이미 다른 Pawn을 점유 중이면 먼저 해제.
+	UFUNCTION(Callable, Category="PlayerController")
+	void Possess(APawn* Pawn);
+	UFUNCTION(Callable, Category="PlayerController")
+	void UnPossess();
+
+	UFUNCTION(Pure, Category="PlayerController")
+	APawn* GetPossessedPawn() const { return GetPawn(); }
+
+	// ─── Input gating ────────────────────────────────────────────
+	// 플레이어 입력만 mute/unmute 한다 (UE 의 APlayerController::EnableInput/DisableInput).
+	// World->SetPaused 와 달리 물리/Tick/애니메이션은 계속 돌아간다 — 사망 연출처럼
+	// 캐릭터 애니·카메라 페이드는 유지하되 플레이어 조작만 막고 싶을 때 사용.
+	// Possess 는 건드리지 않으므로 카메라 view target 도 그대로 유지된다.
+	UFUNCTION(Callable, Category="PlayerController")
+	void EnableInput() { bInputEnabled = true; }
+	UFUNCTION(Callable, Category="PlayerController")
+	void DisableInput() { bInputEnabled = false; }
+	UFUNCTION(Pure, Category="PlayerController")
+	bool IsInputEnabled() const { return bInputEnabled; }
+
+	void ProcessPlayerInput(const FInputSystemSnapshot& Snapshot, float DeltaTime);
+
+	// ─── Camera Manager ──────────────────────────────────────────
+	// UE: APlayerController::PlayerCameraManager 멤버. 현재는 World 가 owner 이고 PC 는 reference 만 보유.
+	// E.2 청크 3 에서 World 의 CameraManager 멤버가 제거되면 PC 가 직접 SpawnActor 로 owner.
+	UFUNCTION(Pure, Category="Camera")
+	APlayerCameraManager* GetPlayerCameraManager() const { return PlayerCameraManager.Get(); }
+
+	// ─── View Target ─────────────────────────────────────────────
+	// 새 view target 으로 전환 (블렌드 가능). UCameraComponent 가 붙어있는 액터 권장.
+	// UE: APlayerController::SetViewTargetWithBlend
+	UFUNCTION(Callable, Category="Camera")
+	virtual void SetViewTargetWithBlend(
+		AActor* NewViewTarget,
+		float BlendTime = 0.0f,
+		EViewTargetBlendFunction BlendFunc = EViewTargetBlendFunction::VTBlend_Linear,
+		float BlendExp = 0.0f,
+		bool bLockOutgoing = false);
+
+private:
+	void NotifyPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
+
+	// PlayerCameraManager — UE 의 PC->PlayerCameraManager 와 동일 의미. 직렬화 제외.
+	// 현재(E.2 청크 1)는 World 의 CameraManager 를 reference 로 캐싱. E.2 청크 3 에서
+	// PC 가 BeginPlay 에서 직접 SpawnActor 로 생성하는 owner 로 전환.
+	TWeakObjectPtr<APlayerCameraManager> PlayerCameraManager;
+
+	// 입력 게이트 — true 면 ProcessPlayerInput 이 Pawn 으로 입력을 전달, false 면 early-return.
+	// 기본 true. PC 가 재생성되는 scene transition 마다 자동으로 리셋된다.
+	bool bInputEnabled = true;
+};

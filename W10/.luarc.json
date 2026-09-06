@@ -1,0 +1,17 @@
+{
+  "runtime.version": "Lua 5.4",
+  "runtime.path": [
+    "?.lua",
+    "?/init.lua",
+    "CrashEngine/Asset/Scripts/?.lua",
+    "CrashEngine/Asset/Scripts/?/init.lua"
+  ],
+  "workspace.library": [
+    "CrashEngine/LuaStubs"
+  ],
+  "workspace.checkThirdParty": false,
+  "diagnostics.globals": [
+    "Log",
+    "Input"
+  ]
+}

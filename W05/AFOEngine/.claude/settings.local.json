@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\\\Users\\\\jungle\\\\Documents\\\\GitHub\\\\Week5\\\\AFOEngine\")",
+      "Bash(dir \"C:\\\\Users\\\\jungle\\\\Documents\\\\GitHub\\\\Week5\\\\Engine\\\\Source\\\\Renderer\\\\D3D11\")",
+      "Bash(cmd /c \"dir C:\\\\Users\\\\jungle\\\\Documents\\\\GitHub\\\\Week5\\\\Engine\\\\Source\\\\Renderer\\\\D3D11 2>&1\")"
+    ]
+  }
+}

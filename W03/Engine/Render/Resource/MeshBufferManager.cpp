@@ -1,0 +1,60 @@
+#include "MeshBufferManager.h"
+
+void FMeshBufferManager::Create(ID3D11Device* InDevice)
+{
+	MeshBufferMap[EPrimitiveType::EPT_Cube].Create(InDevice, FMeshManager::GetCube());
+	MeshBufferMap[EPrimitiveType::EPT_Sphere].Create(InDevice, FMeshManager::GetSphere());
+	MeshBufferMap[EPrimitiveType::EPT_Plane].Create(InDevice, FMeshManager::GetPlane());
+	MeshBufferMap[EPrimitiveType::EPT_TransGizmo].Create(InDevice, FMeshManager::GetTranslationGizmo());
+	MeshBufferMap[EPrimitiveType::EPT_RotGizmo].Create(InDevice, FMeshManager::GetRotationGizmo());
+	MeshBufferMap[EPrimitiveType::EPT_ScaleGizmo].Create(InDevice, FMeshManager::GetScaleGizmo());
+	MeshBufferMap[EPrimitiveType::EPT_MouseOverlay].Create(InDevice, FMeshManager::GetMouseOverlay());
+	MeshBufferMap[EPrimitiveType::EPT_Box].Create(InDevice, FMeshManager::GetBox());
+	UVMeshBufferMap[EPrimitiveType::EPT_SubUV].Create(InDevice, FMeshManager::GetUVRect());
+	MeshBufferMap[EPrimitiveType::EPT_Quad].Create(InDevice, FMeshManager::GetQuad());
+	MeshBufferMap[EPrimitiveType::EPT_SubUV].Create(InDevice, FMeshManager::GetNull());
+	MeshBufferMap[EPrimitiveType::EPT_Text].Create(InDevice, FMeshManager::GetQuad());
+}
+
+//	TODO : 내일 하기
+void FMeshBufferManager::Release()
+{
+	for (auto& pair : MeshBufferMap)
+	{
+		pair.second.Release();
+	}
+	MeshBufferMap.clear();
+
+	for (auto& pair : UVMeshBufferMap)
+	{
+		pair.second.Release();
+	}
+	UVMeshBufferMap.clear();
+
+}
+
+//	MeshBuffer는 VB, IB를 모두 포함하고 있습니다.
+FMeshBuffer& FMeshBufferManager::GetMeshBuffer(EPrimitiveType InPrimitiveType)
+{
+	auto it = MeshBufferMap.find(InPrimitiveType);
+	if (it != MeshBufferMap.end())
+	{
+		return it->second;
+	}
+	
+	//	존재하지 않는 PrimitiveType이 요청된 경우, 기본적으로 CubeMeshBuffer를 반환하도록 합니다.
+	return MeshBufferMap.at(EPrimitiveType::EPT_Cube);
+}
+
+FUVMeshBuffer& FMeshBufferManager::GetUVMeshBuffer(EPrimitiveType InPrimitiveType)
+{
+	// TODO: 여기에 return 문을 삽입합니다.
+	auto it = UVMeshBufferMap.find(InPrimitiveType);
+	if (it != UVMeshBufferMap.end())
+	{
+		return it->second;
+	}
+
+	//	존재하지 않는 PrimitiveType이 요청된 경우, 기본적으로 CubeMeshBuffer를 반환하도록 합니다.
+	return UVMeshBufferMap.at(EPrimitiveType::EPT_SubUV);
+}

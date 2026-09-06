@@ -1,0 +1,345 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{ff45bcbc-2458-4116-8aab-0deafdb6ec74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{9aab4f62-84de-4744-87fb-26a76bdf6c85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\soloud">
+      <UniqueIdentifier>{fe4a7c63-90b6-4f34-a026-e961da608c12}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_demo.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_tables.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_win32.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="IActor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Structs.h">
+      <Filter>헤더 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Ball.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerFeet.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="InputTest.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsoleHelper.h">
+      <Filter>헤더 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="InputSystem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="GameManger.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerController.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="AsyncTaskManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectUI.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="UIHelpers.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultUI.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Particles.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SkillGauge.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="skills.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="GoalTrigger.h">
+      <Filter>헤더 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="GoalTrigger.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="ShaderW0.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_dx11.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_win32.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="IActor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="UPrimitive.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="UBall.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="URenderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Constants.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Ball.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerFeet.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InputSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GameManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GameTypes.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectUI.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="UIHelpers.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ResultUI.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GameController.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerController.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_audiosource.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_bassboostfilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_biquadresonantfilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_bus.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_c.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_dcremovalfilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_echofilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_error.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_fader.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_fft.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_fftfilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_file.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_file_hack_off.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_file_hack_on.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_filter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_flangerfilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_freeverbfilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_internal.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_lofifilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_misc.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_monotone.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_noise.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_openmpt.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_queue.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_robotizefilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_sfxr.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_speech.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_tedsid.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_thread.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_vic.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_vizsn.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_wav.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_waveshaperfilter.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="soloud\include\soloud_wavstream.h">
+      <Filter>헤더 파일\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="AsyncTaskManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SkillGauge.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="skills.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ShaderW1.hlsl" />
+    <None Include="packages.config" />
+    <None Include="ShaderSpriteRect.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="whistle.wav">
+      <Filter>리소스 파일</Filter>
+    </Media>
+  </ItemGroup>
+</Project>

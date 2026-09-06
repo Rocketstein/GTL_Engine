@@ -1,0 +1,900 @@
+#include "GizmoComponent.h"
+#include "Object/ObjectFactory.h"
+#include "GameFramework/AActor.h"
+#include "GameFramework/World.h"
+#include "Math/MathUtils.h"
+#include "Math/Quat.h"
+#include "Math/Matrix.h"
+#include "Render/Resource/MeshBufferManager.h"
+#include "Render/Shader/ShaderManager.h"
+#include "Collision/RayUtils.h"
+#include "Render/Proxy/GizmoSceneProxy.h"
+#include "Render/Scene/FScene.h"
+#include <cfloat>
+
+IMPLEMENT_CLASS(UGizmoComponent, UPrimitiveComponent)
+HIDE_FROM_COMPONENT_LIST(UGizmoComponent)
+
+FPrimitiveSceneProxy* UGizmoComponent::CreateSceneProxy()
+{
+	return new FGizmoSceneProxy(this, false); // Outer
+}
+
+void UGizmoComponent::CreateRenderState()
+{
+	if (SceneProxy) return;
+
+	FScene* Scene = RegisteredScene;
+	if (!Scene && Owner && Owner->GetWorld())
+		Scene = &Owner->GetWorld()->GetScene();
+	if (!Scene) return;
+
+	// Outer 프록시 (기본 경로)
+	SceneProxy = Scene->AddPrimitive(this);
+
+	// Inner 프록시 (별도 등록)
+	InnerProxy = new FGizmoSceneProxy(this, true);
+	Scene->RegisterProxy(InnerProxy);
+}
+
+void UGizmoComponent::DestroyRenderState()
+{
+	FScene* Scene = RegisteredScene;
+	if (!Scene && Owner && Owner->GetWorld())
+		Scene = &Owner->GetWorld()->GetScene();
+
+	if (Scene)
+	{
+		if (InnerProxy) { Scene->RemovePrimitive(InnerProxy); InnerProxy = nullptr; }
+		if (SceneProxy) { Scene->RemovePrimitive(SceneProxy); SceneProxy = nullptr; }
+	}
+}
+
+#include <cmath>
+UGizmoComponent::UGizmoComponent()
+{
+	MeshData = &FMeshBufferManager::Get().GetMeshData(EMeshShape::TransGizmo);
+	LocalExtents = FVector(1.5f, 1.5f, 1.5f);
+}
+
+void UGizmoComponent::SetHolding(bool bHold)
+{
+	if (bIsHolding == bHold)
+	{
+		return;
+	}
+
+	UWorld* World = nullptr;
+	if (TargetComponent)
+	{
+		World = TargetComponent->GetWorld();
+	}
+	if (!World && Owner)
+	{
+		World = Owner->GetWorld();
+	}
+
+	if (bHold)
+	{
+		if (World)
+		{
+			World->BeginDeferredPickingBVHUpdate();
+		}
+	}
+	else if (World)
+	{
+		World->EndDeferredPickingBVHUpdate();
+	}
+
+	bIsHolding = bHold;
+	if (bHold)
+	{
+		// Restart snap accumulation for each new gizmo drag so the first step is stable.
+		ResetSnapAccumulation();
+	}
+}
+
+bool UGizmoComponent::IntersectRayAxis(const FRay& Ray, FVector AxisEnd, float AxisScale, float& OutRayT)
+{
+	FVector AxisStart = GetWorldLocation();
+	FVector RayOrigin = Ray.Origin;
+	FVector RayDirection = Ray.Direction;
+
+	FVector AxisVector = AxisEnd - AxisStart;
+	FVector DiffOrigin = RayOrigin - AxisStart;
+
+	float RayDirDotRayDir = RayDirection.X * RayDirection.X + RayDirection.Y * RayDirection.Y + RayDirection.Z * RayDirection.Z;
+	float RayDirDotAxis = RayDirection.X * AxisVector.X + RayDirection.Y * AxisVector.Y + RayDirection.Z * AxisVector.Z;
+	float AxisDotAxis = AxisVector.X * AxisVector.X + AxisVector.Y * AxisVector.Y + AxisVector.Z * AxisVector.Z;
+	float RayDirDotDiff = RayDirection.X * DiffOrigin.X + RayDirection.Y * DiffOrigin.Y + RayDirection.Z * DiffOrigin.Z;
+	float AxisDotDiff = AxisVector.X * DiffOrigin.X + AxisVector.Y * DiffOrigin.Y + AxisVector.Z * DiffOrigin.Z;
+
+	float Denominator = (RayDirDotRayDir * AxisDotAxis) - (RayDirDotAxis * RayDirDotAxis);
+
+	float RayT;
+	float AxisS;
+
+	if (Denominator < 1e-6f)
+	{
+		RayT = 0.0f;
+		AxisS = (AxisDotAxis > 0.0f) ? (AxisDotDiff / AxisDotAxis) : 0.0f;
+	}
+	else
+	{
+		RayT = (RayDirDotAxis * AxisDotDiff - AxisDotAxis * RayDirDotDiff) / Denominator;
+		AxisS = (RayDirDotRayDir * AxisDotDiff - RayDirDotAxis * RayDirDotDiff) / Denominator;
+	}
+
+	if (RayT < 0.0f) RayT = 0.0f;
+
+	if (AxisS < 0.0f) AxisS = 0.0f;
+	else if (AxisS > 1.0f) AxisS = 1.0f;
+
+	FVector ClosestPointOnRay = RayOrigin + (RayDirection * RayT);
+	FVector ClosestPointOnAxis = AxisStart + (AxisVector * AxisS);
+
+	FVector DistanceVector = ClosestPointOnRay - ClosestPointOnAxis;
+	float DistanceSquared = (DistanceVector.X * DistanceVector.X) +
+		(DistanceVector.Y * DistanceVector.Y) +
+		(DistanceVector.Z * DistanceVector.Z);
+
+	//기즈모 픽킹에 원기둥 크기를 반영합니다.
+	float ClickThreshold = Radius * AxisScale;
+	constexpr float StemRadius = 0.06f;
+	ClickThreshold = StemRadius * AxisScale;
+	float ClickThresholdSquared = ClickThreshold * ClickThreshold;
+
+	if (DistanceSquared < ClickThresholdSquared)
+	{
+		OutRayT = RayT;
+		return true;
+	}
+
+	return false;
+}
+
+bool UGizmoComponent::IntersectRayRotationHandle(const FRay& Ray, int32 Axis, float& OutRayT) const
+{
+	const FVector AxisVector = GetVectorForAxis(Axis).Normalized();
+	const float Scale = (Axis == 0) ? GetWorldScale().X : (Axis == 1 ? GetWorldScale().Y : GetWorldScale().Z);
+	const float RingRadius = AxisLength * Scale;
+	const float RingThickness = Radius * Scale * 1.75f;
+
+	const float Denom = Ray.Direction.Dot(AxisVector);
+	if (std::abs(Denom) < 1e-6f)
+	{
+		return false;
+	}
+
+	const float RayT = (GetWorldLocation() - Ray.Origin).Dot(AxisVector) / Denom;
+	if (RayT <= 0.0f)
+	{
+		return false;
+	}
+
+	const FVector HitPoint = Ray.Origin + Ray.Direction * RayT;
+	const FVector Radial = HitPoint - GetWorldLocation();
+	const FVector Planar = Radial - AxisVector * Radial.Dot(AxisVector);
+	const float DistanceToRing = std::abs(Planar.Length() - RingRadius);
+	if (DistanceToRing <= RingThickness)
+	{
+		OutRayT = RayT;
+		return true;
+	}
+
+	return false;
+}
+
+bool UGizmoComponent::IntersectRayCenterHandle(const FRay& Ray, float& OutRayT) const
+{
+	const FVector Center = GetWorldLocation();
+	const float CenterScale = GetWorldScale().X;
+	const float CenterRadius = 0.14f * CenterScale;
+
+	const FVector ToCenter = Center - Ray.Origin;
+	const float Projection = ToCenter.Dot(Ray.Direction);
+	if (Projection < 0.0f)
+	{
+		return false;
+	}
+
+	const FVector ClosestPoint = Ray.Origin + Ray.Direction * Projection;
+	const float DistanceSq = (ClosestPoint - Center).Dot(ClosestPoint - Center);
+	const float RadiusSq = CenterRadius * CenterRadius;
+	if (DistanceSq > RadiusSq)
+	{
+		return false;
+	}
+
+	const float Offset = std::sqrt((std::max)(0.0f, RadiusSq - DistanceSq));
+	OutRayT = Projection - Offset;
+	if (OutRayT < 0.0f)
+	{
+		OutRayT = Projection;
+	}
+	return true;
+}
+
+void UGizmoComponent::HandleDrag(float DragAmount)
+{
+	// Snap is applied on the accumulated drag so mouse deltas do not jitter between steps.
+	DragAmount = ApplySnapToDragAmount(DragAmount);
+	if (DragAmount == 0.0f)
+	{
+		return;
+	}
+
+	switch (CurMode)
+	{
+	case EGizmoMode::Translate:
+		TranslateTarget(DragAmount);
+		break;
+	case EGizmoMode::Rotate:
+		RotateTarget(DragAmount);
+		break;
+	case EGizmoMode::Scale:
+		ScaleTarget(DragAmount);
+		break;
+	default:
+		break;
+	}
+
+	UpdateGizmoTransform();
+}
+
+float UGizmoComponent::ApplySnapToDragAmount(float DragAmount)
+{
+	bool bSnapEnabled = false;
+	float SnapSize = 0.0f;
+	switch (CurMode)
+	{
+	case EGizmoMode::Translate:
+		bSnapEnabled = bTranslationSnapEnabled;
+		SnapSize = TranslationSnapSize;
+		break;
+	case EGizmoMode::Rotate:
+		bSnapEnabled = bRotationSnapEnabled;
+		SnapSize = RotationSnapSizeRadians;
+		break;
+	case EGizmoMode::Scale:
+		bSnapEnabled = bScaleSnapEnabled;
+		SnapSize = ScaleSnapSize;
+		break;
+	default:
+		break;
+	}
+
+	if (!bSnapEnabled || SnapSize <= FMath::Epsilon)
+	{
+		return DragAmount;
+	}
+
+	AccumulatedRawDragAmount += DragAmount;
+	const float SnappedTotal = std::floor((AccumulatedRawDragAmount / SnapSize) + 0.5f) * SnapSize;
+	const float DeltaToApply = SnappedTotal - LastAppliedSnappedDragAmount;
+	LastAppliedSnappedDragAmount = SnappedTotal;
+	return DeltaToApply;
+}
+
+void UGizmoComponent::ResetSnapAccumulation()
+{
+	AccumulatedRawDragAmount = 0.0f;
+	LastAppliedSnappedDragAmount = 0.0f;
+}
+
+void UGizmoComponent::TranslateTarget(float DragAmount)
+{
+	if (!TargetComponent) return;
+
+	if (SelectedAxis == 3)
+	{
+		// Planar translation is applied directly in UpdatePlanarDrag.
+		return;
+	}
+
+	FVector ConstrainedDelta = GetVectorForAxis(SelectedAxis) * DragAmount;
+
+	AddWorldOffset(ConstrainedDelta);
+
+	AActor* Owner = TargetComponent->GetOwner();
+	bool bIsRoot = (Owner && Owner->GetRootComponent() == TargetComponent);
+
+	// 루트 컴포넌트를 조작 중일 때만 선택된 모든 액터를 그룹 이동시킨다.
+	if (bIsRoot && AllSelectedActors && !AllSelectedActors->empty())
+	{
+		for (AActor* Actor : *AllSelectedActors)
+		{
+			if (Actor) Actor->AddActorWorldOffset(ConstrainedDelta);
+		}
+	}
+	else
+	{
+		// 자식 컴포넌트인 경우, 부모는 두고 자신과 자신의 자식들만 이동시킨다.
+		TargetComponent->AddWorldOffset(ConstrainedDelta);
+	}
+}
+
+void UGizmoComponent::RotateTarget(float DragAmount)
+{
+	if (!TargetComponent) return;
+
+	FVector RotationAxis = GetVectorForAxis(SelectedAxis);
+	if (!bIsWorldSpace)
+	{
+		// Local rotation must use the actor's canonical local axes; world-aligned gizmo axes cause jumps.
+		switch (SelectedAxis)
+		{
+		case 0: RotationAxis = FVector(1.0f, 0.0f, 0.0f); break;
+		case 1: RotationAxis = FVector(0.0f, 1.0f, 0.0f); break;
+		case 2: RotationAxis = FVector(0.0f, 0.0f, 1.0f); break;
+		default: break;
+		}
+	}
+	FQuat DeltaQuat = FQuat::FromAxisAngle(RotationAxis, DragAmount);
+
+	const float DeltaDeg = DragAmount * RAD_TO_DEG;
+
+	auto ApplyRotation = [&](USceneComponent* Component)
+		{
+			if (!Component) return;
+			const FQuat& CurQuat = Component->GetRelativeQuat();
+			FQuat NewQuat = (bIsWorldSpace ? (DeltaQuat * CurQuat) : (CurQuat * DeltaQuat)).GetNormalized();
+
+			if (bIsWorldSpace)
+			{
+				// World rotation is driven purely by quaternion composition.
+				Component->SetRelativeRotation(NewQuat);
+				return;
+			}
+
+			// Local rotation preserves the edited axis through the cached Euler hint.
+			FRotator EulerHint = Component->GetCachedEditRotator();
+			switch (SelectedAxis)
+			{
+			case 0: EulerHint.Roll += DeltaDeg; break;
+			case 1: EulerHint.Pitch += DeltaDeg; break;
+			case 2: EulerHint.Yaw += DeltaDeg; break;
+			default: break;
+			}
+			Component->SetRelativeRotationWithEulerHint(NewQuat, EulerHint);
+		};
+
+	AActor* Owner = TargetComponent->GetOwner();
+	bool bIsRoot = (Owner && Owner->GetRootComponent() == TargetComponent);
+
+	if (bIsRoot && AllSelectedActors && !AllSelectedActors->empty())
+	{
+		for (AActor* Actor : *AllSelectedActors)
+		{
+			if (Actor && Actor->GetRootComponent())
+			{
+				ApplyRotation(Actor->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		// 자식 컴포넌트인 경우 자신만 회전시킨다 (자식들은 계층구조상 따라옴).
+		ApplyRotation(TargetComponent);
+	}
+}
+
+void UGizmoComponent::ScaleTarget(float DragAmount)
+{
+	if (!TargetComponent) return;
+
+	float ScaleDelta = DragAmount * ScaleSensitivity;
+
+	auto ApplyScale = [&](USceneComponent* Component)
+		{
+			if (!Component) return;
+			FVector NewScale = Component->GetRelativeScale();
+			switch (SelectedAxis)
+			{
+			case 0: NewScale.X += ScaleDelta; break;
+			case 1: NewScale.Y += ScaleDelta; break;
+			case 2: NewScale.Z += ScaleDelta; break;
+			}
+			Component->SetRelativeScale(NewScale);
+		};
+
+	AActor* Owner = TargetComponent->GetOwner();
+	bool bIsRoot = (Owner && Owner->GetRootComponent() == TargetComponent);
+
+	if (bIsRoot && AllSelectedActors && !AllSelectedActors->empty())
+	{
+		for (AActor* Actor : *AllSelectedActors)
+		{
+			if (Actor && Actor->GetRootComponent())
+			{
+				ApplyScale(Actor->GetRootComponent());
+			}
+		}
+	}
+	else
+	{
+		// 자식 컴포넌트인 경우 자신만 스케일을 조절한다.
+		ApplyScale(TargetComponent);
+	}
+}
+
+void UGizmoComponent::SetTargetLocation(FVector NewLocation)
+{
+	if (!TargetComponent) return;
+
+	TargetComponent->SetWorldLocation(NewLocation);
+	UpdateGizmoTransform();
+}
+
+void UGizmoComponent::SetTargetRotation(FRotator NewRotation)
+{
+	if (!TargetComponent) return;
+
+	TargetComponent->SetRelativeRotation(NewRotation);
+	UpdateGizmoTransform();
+}
+
+void UGizmoComponent::SetTargetScale(FVector NewScale)
+{
+	if (!TargetComponent) return;
+
+	FVector SafeScale = NewScale;
+	if (SafeScale.X < 0.001f) SafeScale.X = 0.001f;
+	if (SafeScale.Y < 0.001f) SafeScale.Y = 0.001f;
+	if (SafeScale.Z < 0.001f) SafeScale.Z = 0.001f;
+
+	TargetComponent->SetRelativeScale(SafeScale);
+}
+
+bool UGizmoComponent::LineTraceComponent(const FRay& Ray, FRayHitResult& OutHitResult)
+{
+	OutHitResult = {};
+	if (!MeshData || MeshData->Indices.empty())
+	{
+		return false;
+	}
+
+	float BestRayT = FLT_MAX;
+	int32 BestAxis = -1;
+	const FVector GizmoLocation = GetWorldLocation();
+
+	for (int32 Axis = 0; Axis < 3; ++Axis)
+	{
+		if ((AxisMask & (1u << Axis)) == 0)
+		{
+			continue;
+		}
+
+		float RayT = 0.0f;
+		bool bAxisHit = false;
+		if (CurMode == EGizmoMode::Rotate)
+		{
+			bAxisHit = IntersectRayRotationHandle(Ray, Axis, RayT);
+		}
+		else
+		{
+			const FVector AxisDir = GetVectorForAxis(Axis).Normalized();
+			const float AxisScale = (Axis == 0) ? GetWorldScale().X : (Axis == 1 ? GetWorldScale().Y : GetWorldScale().Z);
+			const FVector AxisEnd = GizmoLocation + AxisDir * AxisLength * AxisScale;
+			bAxisHit = IntersectRayAxis(Ray, AxisEnd, AxisScale, RayT);
+		}
+
+		if (bAxisHit && RayT < BestRayT)
+		{
+			BestRayT = RayT;
+			BestAxis = Axis;
+		}
+	}
+
+	if (CurMode == EGizmoMode::Translate)
+	{
+		float CenterRayT = 0.0f;
+		if (IntersectRayCenterHandle(Ray, CenterRayT) && CenterRayT < BestRayT)
+		{
+			BestRayT = CenterRayT;
+			BestAxis = 3;
+		}
+	}
+
+	if (BestAxis >= 0)
+	{
+		OutHitResult.bHit = true;
+		OutHitResult.Distance = BestRayT;
+		OutHitResult.HitComponent = this;
+		if (!IsHolding())
+		{
+			SelectedAxis = BestAxis;
+		}
+		return true;
+	}
+
+	if (!IsHolding())
+	{
+		SelectedAxis = -1;
+	}
+	return false;
+}
+
+
+FVector UGizmoComponent::GetVectorForAxis(int32 Axis) const
+{
+	switch (Axis)
+	{
+	case 0:
+		return GetForwardVector();
+	case 1:
+		return GetRightVector();
+	case 2:
+		return GetUpVector();
+	default:
+		return FVector(0.f, 0.f, 0.f);
+	}
+}
+
+void UGizmoComponent::SetTarget(USceneComponent* NewTarget)
+{
+	if (!NewTarget)
+	{
+		return;
+	}
+
+	TargetComponent = NewTarget;
+
+	SetWorldLocation(TargetComponent->GetWorldLocation());
+	UpdateGizmoTransform();
+	SetVisibility(true);
+}
+
+void UGizmoComponent::SetTarget(AActor* NewTargetActor)
+{
+	if (NewTargetActor)
+	{
+		SetTarget(NewTargetActor->GetRootComponent());
+	}
+	else
+	{
+		TargetComponent = nullptr;
+		SetVisibility(false);
+	}
+}
+
+void UGizmoComponent::UpdateLinearDrag(const FRay& Ray)
+{
+	if (SelectedAxis == 3)
+	{
+		UpdatePlanarDrag(Ray);
+		return;
+	}
+
+	FVector AxisVector = GetVectorForAxis(SelectedAxis);
+
+	FVector PlaneNormal = AxisVector.Cross(Ray.Direction);
+	FVector ProjectDir = PlaneNormal.Cross(AxisVector);
+
+	float Denom = Ray.Direction.Dot(ProjectDir);
+	if (std::abs(Denom) < 1e-6f) return;
+
+	float DistanceToPlane = (GetWorldLocation() - Ray.Origin).Dot(ProjectDir) / Denom;
+	FVector CurrentIntersectionLocation = Ray.Origin + (Ray.Direction * DistanceToPlane);
+
+	if (bIsFirstFrameOfDrag)
+	{
+		LastIntersectionLocation = CurrentIntersectionLocation;
+		bIsFirstFrameOfDrag = false;
+		return;
+	}
+
+	FVector FullDelta = CurrentIntersectionLocation - LastIntersectionLocation;
+
+	float DragAmount = FullDelta.Dot(AxisVector);
+
+	HandleDrag(DragAmount);
+
+	LastIntersectionLocation = CurrentIntersectionLocation;
+}
+
+void UGizmoComponent::UpdatePlanarDrag(const FRay& Ray)
+{
+	if (!TargetComponent)
+	{
+		return;
+	}
+
+	if (bIsFirstFrameOfDrag)
+	{
+		DragPlaneNormal = (Ray.Direction * -1.0f).Normalized();
+		const float InitialDenom = Ray.Direction.Dot(DragPlaneNormal);
+		if (std::abs(InitialDenom) < 1e-6f)
+		{
+			return;
+		}
+
+		const float InitialDistance = (GetWorldLocation() - Ray.Origin).Dot(DragPlaneNormal) / InitialDenom;
+		LastIntersectionLocation = Ray.Origin + (Ray.Direction * InitialDistance);
+		bIsFirstFrameOfDrag = false;
+		return;
+	}
+
+	const float Denom = Ray.Direction.Dot(DragPlaneNormal);
+	if (std::abs(Denom) < 1e-6f)
+	{
+		return;
+	}
+
+	const float DistanceToPlane = (GetWorldLocation() - Ray.Origin).Dot(DragPlaneNormal) / Denom;
+	const FVector CurrentIntersectionLocation = Ray.Origin + (Ray.Direction * DistanceToPlane);
+	const FVector FullDelta = CurrentIntersectionLocation - LastIntersectionLocation;
+	if (FullDelta.Dot(FullDelta) <= FMath::Epsilon)
+	{
+		return;
+	}
+
+	TargetComponent->SetWorldLocation(TargetComponent->GetWorldLocation() + FullDelta);
+	UpdateGizmoTransform();
+	LastIntersectionLocation = CurrentIntersectionLocation;
+}
+
+void UGizmoComponent::UpdateAngularDrag(const FRay& Ray)
+{
+	FVector AxisVector = GetVectorForAxis(SelectedAxis);
+	FVector PlaneNormal = AxisVector;
+
+	float Denom = Ray.Direction.Dot(PlaneNormal);
+	if (std::abs(Denom) < 1e-6f) return;
+
+	float DistanceToPlane = (GetWorldLocation() - Ray.Origin).Dot(PlaneNormal) / Denom;
+	FVector CurrentIntersectionLocation = Ray.Origin + (Ray.Direction * DistanceToPlane);
+
+	if (bIsFirstFrameOfDrag)
+	{
+		LastIntersectionLocation = CurrentIntersectionLocation;
+		bIsFirstFrameOfDrag = false;
+		return;
+	}
+
+	FVector CenterToLast = (LastIntersectionLocation - GetWorldLocation()).Normalized();
+	FVector CenterToCurrent = (CurrentIntersectionLocation - GetWorldLocation()).Normalized();
+
+	float DotProduct = Clamp(CenterToLast.Dot(CenterToCurrent), -1.0f, 1.0f);
+	float AngleRadians = std::acos(DotProduct);
+
+	FVector CrossProduct = CenterToLast.Cross(CenterToCurrent);
+	float Sign = (CrossProduct.Dot(AxisVector) >= 0.0f) ? 1.0f : -1.0f;
+
+	float DeltaAngle = Sign * AngleRadians;
+
+	HandleDrag(DeltaAngle);
+
+	LastIntersectionLocation = CurrentIntersectionLocation;
+}
+
+void UGizmoComponent::UpdateHoveredAxis(int Index)
+{
+	if (Index < 0)
+	{
+		if (IsHolding() == false) SelectedAxis = -1;
+	}
+	else
+	{
+		if (IsHolding() == false)
+		{
+			uint32 VertexIndex = MeshData->Indices[Index];
+			uint32 HitAxis = MeshData->Vertices[VertexIndex].SubID;
+
+			if (HitAxis == 3 || (AxisMask & (1u << HitAxis)))
+			{
+				SelectedAxis = HitAxis;
+			}
+			else
+			{
+				SelectedAxis = -1;
+			}
+		}
+	}
+}
+
+void UGizmoComponent::UpdateDrag(const FRay& Ray)
+{
+	if (IsHolding() == false || IsActive() == false)
+	{
+		return;
+	}
+
+	if (SelectedAxis == -1 || TargetComponent == nullptr)
+	{
+		return;
+	}
+
+	if (CurMode == EGizmoMode::Rotate)
+	{
+		UpdateAngularDrag(Ray);
+	}
+
+	else
+	{
+		UpdateLinearDrag(Ray);
+
+	}
+}
+
+void UGizmoComponent::DragEnd()
+{
+	bIsFirstFrameOfDrag = true;
+	// Clear leftover snap state so the next drag starts from zero.
+	ResetSnapAccumulation();
+	SetHolding(false);
+	SetPressedOnHandle(false);
+}
+
+void UGizmoComponent::SetNextMode()
+{
+	int NextInt = (static_cast<int>(CurMode) + 1) % static_cast<int>(EGizmoMode::End);
+	if (NextInt == 0) NextInt = 1; // Skip Select in cycle
+	EGizmoMode NextMode = static_cast<EGizmoMode>(NextInt);
+	UpdateGizmoMode(NextMode);
+}
+
+void UGizmoComponent::UpdateGizmoMode(EGizmoMode NewMode)
+{
+	CurMode = NewMode;
+	SetVisibility(NewMode != EGizmoMode::Select);
+	UpdateGizmoTransform();
+}
+
+void UGizmoComponent::UpdateGizmoTransform()
+{
+	if (!TargetComponent) return;
+
+	if (CurMode == EGizmoMode::Select)
+	{
+		SetVisibility(false);
+		return;
+	}
+	else
+	{
+		SetVisibility(true);
+	}
+
+	const FVector DesiredLocation = TargetComponent->GetWorldLocation();
+	
+	FRotator DesiredRotation = FRotator();
+	if (CurMode == EGizmoMode::Scale || !bIsWorldSpace)
+	{
+		DesiredRotation = TargetComponent->GetWorldMatrix().ToRotator();
+	}
+
+	const FMeshData* DesiredMeshData = nullptr;
+
+	switch (CurMode)
+	{
+	case EGizmoMode::Scale:
+		DesiredMeshData = &FMeshBufferManager::Get().GetMeshData(EMeshShape::ScaleGizmo);
+		break;
+
+	case EGizmoMode::Rotate:
+		DesiredMeshData = &FMeshBufferManager::Get().GetMeshData(EMeshShape::RotGizmo);
+		break;
+
+	case EGizmoMode::Translate:
+		DesiredMeshData = &FMeshBufferManager::Get().GetMeshData(EMeshShape::TransGizmo);
+		break;
+
+	default:
+		break;
+	}
+
+	if (FVector::DistSquared(GetWorldLocation(), DesiredLocation) > FMath::Epsilon * FMath::Epsilon)
+	{
+		SetWorldLocation(DesiredLocation);
+	}
+
+	if (GetRelativeRotation() != DesiredRotation)
+	{
+		SetRelativeRotation(DesiredRotation);
+	}
+
+	if (MeshData != DesiredMeshData && DesiredMeshData)
+	{
+		MeshData = DesiredMeshData;
+		MarkRenderStateDirty();
+	}
+}
+
+float UGizmoComponent::ComputeScreenSpaceScale(const FVector& CameraLocation, bool bIsOrtho, float OrthoWidth) const
+{
+	float NewScale;
+	if (bIsOrtho)
+	{
+		NewScale = OrthoWidth * GizmoScreenScale;
+	}
+	else
+	{
+		float Distance = FVector::Distance(CameraLocation, GetWorldLocation());
+		NewScale = Distance * GizmoScreenScale;
+	}
+	return (NewScale < 0.01f) ? 0.01f : NewScale;
+}
+
+void UGizmoComponent::ApplyScreenSpaceScaling(const FVector& CameraLocation, bool bIsOrtho, float OrthoWidth)
+{
+	float NewScale = ComputeScreenSpaceScale(CameraLocation, bIsOrtho, OrthoWidth);
+	SetRelativeScale(FVector(NewScale, NewScale, NewScale));
+}
+
+void UGizmoComponent::SetWorldSpace(bool bWorldSpace)
+{
+	bIsWorldSpace = bWorldSpace;
+	UpdateGizmoTransform();
+}
+
+void UGizmoComponent::SetSnapSettings(bool bTranslationEnabled, float InTranslationSnapSize,
+	bool bRotationEnabled, float InRotationSnapSizeDegrees,
+	bool bScaleEnabled, float InScaleSnapSize)
+{
+	bTranslationSnapEnabled = bTranslationEnabled;
+	TranslationSnapSize = (InTranslationSnapSize > FMath::Epsilon) ? InTranslationSnapSize : 10.0f;
+	bRotationSnapEnabled = bRotationEnabled;
+	RotationSnapSizeRadians = ((InRotationSnapSizeDegrees > FMath::Epsilon) ? InRotationSnapSizeDegrees : 15.0f) * DEG_TO_RAD;
+	bScaleSnapEnabled = bScaleEnabled;
+	ScaleSnapSize = (InScaleSnapSize > FMath::Epsilon) ? InScaleSnapSize : 0.1f;
+}
+
+uint32 UGizmoComponent::ComputeAxisMask(ELevelViewportType ViewportType, EGizmoMode Mode)
+{
+	constexpr uint32 AllAxes = 0x7;
+	uint32 ViewAxis = AllAxes;
+
+	switch (ViewportType)
+	{
+	case ELevelViewportType::Top:
+	case ELevelViewportType::Bottom:
+		ViewAxis = 0x4; break; // Z
+	case ELevelViewportType::Front:
+	case ELevelViewportType::Back:
+		ViewAxis = 0x1; break; // X
+	case ELevelViewportType::Left:
+	case ELevelViewportType::Right:
+		ViewAxis = 0x2; break; // Y
+	default: break;
+	}
+
+	if (ViewAxis == AllAxes)
+		return AllAxes;
+
+	if (Mode == EGizmoMode::Rotate)
+		return ViewAxis;            // Rotate: 시선 축만
+
+	return AllAxes & ~ViewAxis;     // Translate/Scale: 시선 축 제외
+}
+
+void UGizmoComponent::Deactivate()
+{
+	if (bIsHolding)
+	{
+		SetHolding(false);
+	}
+
+	TargetComponent = nullptr;
+	AllSelectedActors = nullptr;
+	SetVisibility(false);
+	SelectedAxis = -1;
+}
+
+FMeshBuffer* UGizmoComponent::GetMeshBuffer() const
+{
+	EMeshShape Shape = EMeshShape::TransGizmo;
+	switch (CurMode)
+	{
+	case EGizmoMode::Translate:
+		break;
+	case EGizmoMode::Rotate:
+		Shape = EMeshShape::RotGizmo;
+		break;
+	case EGizmoMode::Scale:
+		Shape = EMeshShape::ScaleGizmo;
+		break;
+	case EGizmoMode::Select:
+		break;
+	}
+	return &FMeshBufferManager::Get().GetMeshBuffer(Shape);
+}

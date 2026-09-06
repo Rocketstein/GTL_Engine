@@ -1,0 +1,1178 @@
+#include "ContentBrowserElement.h"
+
+#include "Asset/AssetPackage.h"
+#include "Editor/EditorEngine.h"
+#include "Core/Logging/Log.h"
+#include "FloatCurve/FloatCurveAsset.h"
+#include "FloatCurve/FloatCurveManager.h"
+#include "CameraShake/CameraShakeAsset.h"
+#include "CameraShake/CameraShakeManager.h"
+#include "Animation/Graph/AnimGraphAsset.h"
+#include "Animation/Graph/AnimGraphManager.h"
+#include "Platform/Paths.h"
+#include "Serialization/SceneSaveManager.h"
+#include "Mesh/Static/StaticMesh.h"
+#include "Mesh/Skeletal/SkeletalMesh.h"
+#include "Mesh/MeshManager.h"
+#include "Mesh/Importer/FbxImporter.h"
+#include "Animation/Sequence/AnimSequence.h"
+#include "Animation/Montage/AnimMontage.h"
+#include "Animation/AnimationManager.h"
+#include "Animation/Skeleton/Skeleton.h"
+#include "Animation/Skeleton/SkeletonManager.h"
+#include "Physics/Asset/PhysicsAsset.h"
+#include "Physics/Asset/PhysicsAssetManager.h"
+#include "Physics/Cloth/ClothAsset.h"
+#include "Physics/Cloth/ClothAssetManager.h"
+#include "Mesh/Importer/MeshImportOptions.h"
+
+// MeshElement::RenderContextMenu 가 정의보다 앞서 호출하므로 전방 선언.
+static void CreatePhysicsAssetForBinding(ContentBrowserContext& Context, const FSkeletonBinding& Binding, const std::filesystem::path& SourcePath);
+static void ImportMeshSourceAsClothAssetForContentBrowser(ContentBrowserContext& Context, const FString& SourcePath);
+#include "Particle/ParticleSystem.h"
+#include "Particle/Asset/ParticleSystemManager.h"
+#include "Particle/VectorField/VectorFieldAsset.h"
+#include "Particle/VectorField/VectorFieldManager.h"
+#include "Asset/AssetRegistry.h"
+#include "Editor/UI/Dialog/FbxImportOptionsDialog.h"
+#include "Editor/UI/Asset/Mesh/MeshEditorWidget.h"
+
+#include <algorithm>
+#include <chrono>
+#include <cstdio>
+#include <filesystem>
+#include <utility>
+
+static FString FormatBytes(uint64 Bytes)
+{
+	char Buffer[64];
+
+	if (Bytes >= 1024ull * 1024ull)
+	{
+		std::snprintf(Buffer, sizeof(Buffer), "%.2f MB", static_cast<double>(Bytes) / (1024.0 * 1024.0));
+	}
+	else if (Bytes >= 1024ull)
+	{
+		std::snprintf(Buffer, sizeof(Buffer), "%.2f KB", static_cast<double>(Bytes) / 1024.0);
+	}
+	else
+	{
+		std::snprintf(Buffer, sizeof(Buffer), "%llu B", static_cast<unsigned long long>(Bytes));
+	}
+
+	return Buffer;
+}
+
+static void DrawDetailRow(const char* Label, const FString& Value)
+{
+	ImGui::TableNextRow();
+
+	ImGui::TableSetColumnIndex(0);
+	ImGui::TextDisabled("%s", Label);
+
+	ImGui::TableSetColumnIndex(1);
+
+	const float AvailableWidth = ImGui::GetContentRegionAvail().x;
+	FString Clipped = Value;
+
+	if (ImGui::CalcTextSize(Clipped.c_str()).x > AvailableWidth)
+	{
+		while (!Clipped.empty() && ImGui::CalcTextSize((Clipped + "...").c_str()).x > AvailableWidth)
+		{
+			Clipped.erase(Clipped.begin());
+		}
+
+		Clipped = "..." + Clipped;
+	}
+
+	ImGui::TextUnformatted(Clipped.c_str());
+
+	if (ImGui::IsItemHovered() && Clipped != Value)
+	{
+		ImGui::SetTooltip("%s", Value.c_str());
+	}
+}
+
+static std::filesystem::path ResolveProjectPathForContentBrowser(const FString& Path)
+{
+	std::filesystem::path FullPath(FPaths::ToWide(Path));
+	if (!FullPath.is_absolute())
+	{
+		FullPath = std::filesystem::path(FPaths::RootDir()) / FullPath;
+	}
+	return FullPath.lexically_normal();
+}
+
+static bool ProjectFileExistsForContentBrowser(const FString& Path)
+{
+	const std::filesystem::path FullPath = ResolveProjectPathForContentBrowser(Path);
+	return std::filesystem::exists(FullPath) && std::filesystem::is_regular_file(FullPath);
+}
+
+static bool IsProjectPathForContentBrowser(const std::filesystem::path& Path)
+{
+	std::error_code Ec;
+	const std::filesystem::path Root = std::filesystem::weakly_canonical(FPaths::RootDir(), Ec);
+	if (Ec)
+	{
+		return false;
+	}
+
+	const std::filesystem::path Candidate = std::filesystem::weakly_canonical(Path, Ec);
+	if (Ec)
+	{
+		return false;
+	}
+
+	auto RootIt = Root.begin();
+	auto CandidateIt = Candidate.begin();
+	for (; RootIt != Root.end() && CandidateIt != Candidate.end(); ++RootIt, ++CandidateIt)
+	{
+		if (*RootIt != *CandidateIt)
+		{
+			return false;
+		}
+	}
+
+	return RootIt == Root.end();
+}
+
+static bool HasImportedFbxAssetForContentBrowser(const FString& SourceFbxPath)
+{
+	return ProjectFileExistsForContentBrowser(FMeshManager::GetSkeletalMeshBinaryFilePath(SourceFbxPath)) ||
+	ProjectFileExistsForContentBrowser(FMeshManager::GetStaticMeshBinaryFilePath(SourceFbxPath));
+}
+
+static bool TryOpenImportedFbxAssetForContentBrowser(ContentBrowserContext& Context, const FString& SourceFbxPath)
+{
+	if (!Context.EditorEngine)
+	{
+		return false;
+	}
+
+	ID3D11Device* Device = Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice();
+
+	const FString SkeletalPackagePath = FMeshManager::GetSkeletalMeshBinaryFilePath(SourceFbxPath);
+	if (ProjectFileExistsForContentBrowser(SkeletalPackagePath))
+	{
+		if (USkeletalMesh* MeshAsset = FMeshManager::LoadSkeletalMesh(SkeletalPackagePath, Device))
+		{
+			FMeshEditorWidget::ClearImportDurationForAsset(MeshAsset->GetAssetPathFileName());
+			Context.EditorEngine->OpenAssetEditorForObject(MeshAsset);
+			return true;
+		}
+	}
+
+	const FString StaticPackagePath = FMeshManager::GetStaticMeshBinaryFilePath(SourceFbxPath);
+	if (ProjectFileExistsForContentBrowser(StaticPackagePath))
+	{
+		if (UStaticMesh* MeshAsset = FMeshManager::LoadStaticMesh(StaticPackagePath, Device))
+		{
+			Context.EditorEngine->OpenAssetEditorForObject(MeshAsset);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool ReimportOrImportStaticFbxForContentBrowser(ContentBrowserContext& Context, const FString& SourceFbxPath)
+{
+	if (!Context.EditorEngine)
+	{
+		return false;
+	}
+
+	ID3D11Device* Device            = Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice();
+	const FString StaticPackagePath = FMeshManager::GetStaticMeshBinaryFilePath(SourceFbxPath);
+
+	if (ProjectFileExistsForContentBrowser(StaticPackagePath))
+	{
+		UStaticMesh* Reimported = nullptr;
+		if (FMeshManager::ReimportStaticMesh(StaticPackagePath, Device, Reimported) && Reimported)
+		{
+			Context.bPendingContentRefresh = true;
+			Context.EditorEngine->OpenAssetEditorForObject(Reimported);
+			return true;
+		}
+		return false;
+	}
+
+	if (UStaticMesh* Imported = FMeshManager::LoadStaticMesh(SourceFbxPath, Device))
+	{
+		Context.bPendingContentRefresh = true;
+		Context.EditorEngine->OpenAssetEditorForObject(Imported);
+		return true;
+	}
+
+	return false;
+}
+
+static bool ImportFbxWithDefaultOptionsForContentBrowser(ContentBrowserContext& Context, const FString& SourceFbxPath)
+{
+	if (!Context.EditorEngine)
+	{
+		return false;
+	}
+
+	ID3D11Device* Device = Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice();
+
+	FString    ProbeMessage;
+	const bool bHasSkin = FFbxImporter::HasSkinDeformer(SourceFbxPath, &ProbeMessage);
+	if (!ProbeMessage.empty())
+	{
+		UE_LOG("FBX default import probe: Path=%s Message=%s", SourceFbxPath.c_str(), ProbeMessage.c_str());
+	}
+
+	if (bHasSkin)
+	{
+		FFbxSceneImportRequest Request;
+		Request.SourceFbxPath            = SourceFbxPath;
+		Request.bImportSkeleton          = true;
+		Request.bImportSkin              = true;
+		Request.bImportAnimations        = true;
+		Request.bOverwriteExistingAssets = true;
+
+		FFbxSceneImportResult Result;
+		const auto            ImportStart = std::chrono::steady_clock::now();
+		if (!FMeshManager::ImportFbxScene(Request, Device, Result))
+		{
+			return false;
+		}
+
+		if (Result.SkeletalMesh)
+		{
+			const std::chrono::duration<double> Elapsed = std::chrono::steady_clock::now() - ImportStart;
+			FMeshEditorWidget::RecordImportDurationForAsset(
+				Result.SkeletalMesh->GetAssetPathFileName(),
+				Elapsed.count()
+			);
+			Context.bPendingContentRefresh = true;
+			Context.EditorEngine->OpenAssetEditorForObject(Result.SkeletalMesh);
+			return true;
+		}
+
+		return false;
+	}
+
+	if (UStaticMesh* MeshAsset = FMeshManager::LoadStaticMesh(SourceFbxPath, Device))
+	{
+		Context.bPendingContentRefresh = true;
+		Context.EditorEngine->OpenAssetEditorForObject(MeshAsset);
+		return true;
+	}
+
+	TArray<FFbxAnimationStackInfo> AnimationStacks;
+	FString                        StackMessage;
+	if (FFbxImporter::ListAnimationStacks(SourceFbxPath, AnimationStacks, &StackMessage) && !AnimationStacks.empty())
+	{
+		FFbxImportOptionsDialog::BeginSceneImport(Context.FbxImportDialog, SourceFbxPath);
+		return true;
+	}
+	else if (!StackMessage.empty())
+	{
+		UE_LOG("FBX animation stack query failed: Path=%s Message=%s", SourceFbxPath.c_str(), StackMessage.c_str());
+	}
+
+	return false;
+}
+
+static FString FormatVector3ForContentBrowser(const FVector& Value)
+{
+	char Buffer[128];
+	std::snprintf(Buffer, sizeof(Buffer), "%.3f, %.3f, %.3f", Value.X, Value.Y, Value.Z);
+	return Buffer;
+}
+
+static bool ImportFgaVectorFieldForContentBrowser(ContentBrowserContext& Context, const FString& SourceFgaPath)
+{
+	FString PackagePath;
+	UVectorFieldAsset* ImportedAsset = nullptr;
+	FString Error;
+	if (!FVectorFieldManager::Get().ImportFga(SourceFgaPath, PackagePath, &ImportedAsset, &Error))
+	{
+		UE_LOG("Vector field import failed: Source=%s Error=%s", SourceFgaPath.c_str(), Error.c_str());
+		return false;
+	}
+
+	Context.bPendingContentRefresh = true;
+	return true;
+}
+
+static void ImportMeshSourceAsClothAssetForContentBrowser(ContentBrowserContext& Context, const FString& SourcePath)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	FImportOptions ImportOptions = FImportOptions::Default();
+	FClothAssetBuildOptions BuildOptions;
+	BuildOptions.bBuildDefaultPinnedGrid32x32 = false;
+
+	FString CreatedPath;
+	FString Error;
+	UClothAsset* ClothAsset = nullptr;
+	if (FClothAssetManager::Get().CreateFromMeshSourceFile(SourcePath, ImportOptions, CreatedPath, &ClothAsset, &Error, BuildOptions) && ClothAsset)
+	{
+		Context.bPendingContentRefresh = true;
+		Context.EditorEngine->OpenAssetEditorForObject(ClothAsset);
+		return;
+	}
+
+	UE_LOG("ClothAsset import failed: Source=%s Error=%s", SourcePath.c_str(), Error.c_str());
+}
+
+bool ContentBrowserElement::RenameTo(const FString& NewStem, FString* OutError)
+{
+	auto SetError = [&](const char* Msg) { if (OutError) *OutError = Msg; };
+
+	if (NewStem.empty())
+	{
+		SetError("Name cannot be empty.");
+		return false;
+	}
+
+	// Windows 금지 문자 차단 — 파일 시스템 에러 떨어지기 전에 명시적 메시지.
+	static const char* kInvalidChars = "\\/:*?\"<>|";
+	if (NewStem.find_first_of(kInvalidChars) != FString::npos)
+	{
+		SetError("Name contains invalid character (\\/:*?\"<>|).");
+		return false;
+	}
+
+	const std::filesystem::path Dir = ContentItem.Path.parent_path();
+	const std::wstring NewStemW = FPaths::ToWide(NewStem);
+
+	// 파일은 확장자 유지, 디렉토리는 stem 자체가 곧 이름.
+	std::filesystem::path NewPath;
+	if (ContentItem.bIsDirectory)
+	{
+		NewPath = Dir / NewStemW;
+	}
+	else
+	{
+		NewPath = Dir / (NewStemW + ContentItem.Path.extension().wstring());
+	}
+
+	// 같은 path 면 no-op (성공 처리).
+	if (NewPath == ContentItem.Path)
+	{
+		return true;
+	}
+
+	if (std::filesystem::exists(NewPath))
+	{
+		SetError("A file with that name already exists in this directory.");
+		return false;
+	}
+
+	std::error_code Ec;
+	std::filesystem::rename(ContentItem.Path, NewPath, Ec);
+	if (Ec)
+	{
+		SetError(Ec.message().c_str());
+		return false;
+	}
+
+	ContentItem.Path = NewPath;
+	ContentItem.Name = NewPath.filename().wstring();
+	return true;
+}
+
+bool ContentBrowserElement::DeleteFromDisk(FString* OutError)
+{
+	auto SetError = [&](const char* Msg) { if (OutError) *OutError = Msg; };
+
+	if (ContentItem.bIsDirectory)
+	{
+		SetError("Directories cannot be deleted from this menu.");
+		return false;
+	}
+
+	if (!IsProjectPathForContentBrowser(ContentItem.Path))
+	{
+		SetError("Cannot delete files outside the project.");
+		return false;
+	}
+
+	std::error_code Ec;
+	if (!std::filesystem::exists(ContentItem.Path, Ec) || !std::filesystem::is_regular_file(ContentItem.Path, Ec))
+	{
+		SetError("File does not exist.");
+		return false;
+	}
+
+	std::filesystem::remove(ContentItem.Path, Ec);
+	if (Ec)
+	{
+		SetError(Ec.message().c_str());
+		return false;
+	}
+
+	return true;
+}
+
+bool ContentBrowserElement::RenderSelectSpace(ContentBrowserContext& Context)
+{
+	FString Name = FPaths::ToUtf8(ContentItem.Name);
+	ImGui::PushID(Name.c_str());
+
+	bIsSelected = Context.SelectedElement.get() == this;
+
+	const ImVec2 CardSize = Context.ContentSize;
+	const bool bClicked = ImGui::InvisibleButton("##ElementCard", CardSize);
+
+	const bool bHovered = ImGui::IsItemHovered();
+
+	ImVec2 Min = ImGui::GetItemRectMin();
+	ImVec2 Max = ImGui::GetItemRectMax();
+
+	ImDrawList* DrawList = ImGui::GetWindowDrawList();
+
+	const ImU32 CardColor = bIsSelected
+		? IM_COL32(54, 86, 130, 255)
+		: bHovered
+		? IM_COL32(48, 50, 56, 255)
+		: IM_COL32(34, 36, 40, 255);
+
+	const ImU32 BorderColor = bIsSelected
+		? IM_COL32(98, 160, 255, 255)
+		: bHovered
+		? IM_COL32(90, 94, 104, 255)
+		: IM_COL32(55, 58, 64, 255);
+
+	DrawList->AddRectFilled(Min, Max, CardColor, 6.0f);
+	DrawList->AddRect(Min, Max, BorderColor, 6.0f, 0, bIsSelected ? 2.0f : 1.0f);
+
+	const uint32 AccentColor = GetAccentColor();
+	if (AccentColor != 0)
+	{
+		DrawList->AddRectFilled(
+			ImVec2(Min.x, Min.y),
+			ImVec2(Max.x, Min.y + 4.0f),
+			AccentColor,
+			6.0f,
+			ImDrawFlags_RoundCornersTop);
+	}
+
+	const float Padding = 8.0f;
+	const float FontSize = ImGui::GetFontSize();
+
+	const float LabelHeight = FontSize * 2.4f;
+	ImVec2 IconMin(Min.x + Padding, Min.y + Padding);
+	ImVec2 IconMax(Max.x - Padding, Max.y - Padding - LabelHeight);
+
+	if (Icon && IconMax.y > IconMin.y)
+	{
+		DrawList->AddImage(Icon, IconMin, IconMax);
+	}
+
+	const char* TypeLabel = GetTypeLabel();
+	const bool bHasTypeLabel = TypeLabel && TypeLabel[0] != '\0';
+
+	const FString DisplayName = EllipsisText(GetDisplayName(), CardSize.x - Padding * 2);
+
+	ImVec2 TypePos(Min.x + Padding, Max.y - Padding - FontSize * 2.0f);
+	ImVec2 NamePos(Min.x + Padding, Max.y - Padding - FontSize);
+
+	if (bHasTypeLabel)
+	{
+		DrawList->AddText(TypePos, ImGui::GetColorU32(ImGuiCol_TextDisabled), TypeLabel);
+	}
+
+	DrawList->AddText(NamePos, ImGui::GetColorU32(ImGuiCol_Text), DisplayName.c_str());
+
+	ImGui::PopID();
+
+	return bClicked;
+}
+
+void ContentBrowserElement::Render(ContentBrowserContext& Context)
+{
+	if (RenderSelectSpace(Context))
+	{
+		Context.SelectedElement = shared_from_this();
+		bIsSelected = true;
+		OnLeftClicked(Context);
+	}
+
+	if (ImGui::BeginPopupContextItem())
+	{
+		// 모든 element 공통 — 자식 클래스의 RenderContextMenu 위에 Rename 항목 제공.
+		// 클릭 시 이 element 를 selected 로 만들고 rename popup 요청 set — ContentBrowser
+		// 가 다음 프레임 modal popup 열어 처리.
+		if (ImGui::MenuItem("Rename"))
+		{
+			Context.SelectedElement = shared_from_this();
+			Context.bRenameRequested = true;
+		}
+		if (!ContentItem.bIsDirectory && ImGui::MenuItem("Delete"))
+		{
+			Context.SelectedElement = shared_from_this();
+			FString Error;
+			if (DeleteFromDisk(&Error))
+			{
+				Context.SelectedElement.reset();
+				Context.bPendingContentRefresh = true;
+				ImGui::CloseCurrentPopup();
+				ImGui::EndPopup();
+				return;
+			}
+
+			if (!Error.empty())
+			{
+				UE_LOG("Failed to delete asset: %s", Error.c_str());
+			}
+		}
+		ImGui::Separator();
+		RenderContextMenu(Context);
+		ImGui::EndPopup();
+	}
+
+	bool bDoubleClicked = ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+	if (bDoubleClicked)
+	{
+		OnDoubleLeftClicked(Context);
+	}
+
+	if (ImGui::BeginDragDropSource())
+	{
+		RenderSelectSpace(Context);
+		ImGui::SetDragDropPayload(GetDragItemType(), &ContentItem, sizeof(ContentItem));
+		OnDrag(Context);
+		ImGui::EndDragDropSource();
+	}
+}
+
+void ContentBrowserElement::RenderDetail()
+{
+	const FString DisplayName = GetDisplayName();
+	const char* TypeLabel = GetTypeLabel();
+
+	ImGui::TextUnformatted(DisplayName.c_str());
+	if (TypeLabel && TypeLabel[0] != '\0')
+	{
+		ImGui::TextDisabled("%s", TypeLabel);
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	if (ImGui::BeginTable("AssetDetailsTable", 2, ImGuiTableFlags_SizingStretchProp))
+	{
+		ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_WidthFixed, 72.0f);
+		ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+		DrawDetailRow("Name", DisplayName);
+
+		if (TypeLabel && TypeLabel[0] != '\0')
+		{
+			DrawDetailRow("Type", TypeLabel);
+		}
+
+		const FString RelativePath = FPaths::ToUtf8(
+			ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+		DrawDetailRow("Path", RelativePath);
+
+		FString Extension = FPaths::ToUtf8(ContentItem.Path.extension());
+		std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
+		if (Extension == ".uasset")
+		{
+			DrawDetailRow("Package", "uasset");
+
+			const FString PackagePath = RelativePath;
+
+			EAssetPackageType PackageType = EAssetPackageType::Unknown;
+			if (FAssetPackage::GetPackageType(PackagePath, PackageType))
+			{
+				FAssetImportMetadata Metadata;
+				if (FAssetPackage::ReadMetadata(PackagePath, PackageType, Metadata))
+				{
+					if (!Metadata.SourcePath.empty())
+					{
+						DrawDetailRow("Source", Metadata.SourcePath);
+					}
+
+					if (Metadata.SourceFileSize > 0)
+					{
+						DrawDetailRow("Size", FormatBytes(Metadata.SourceFileSize));
+					}
+				}
+			}
+		}
+
+		ImGui::EndTable();
+	}
+}
+
+FString ContentBrowserElement::EllipsisText(const FString& text, float maxWidth)
+{
+	ImFont* font = ImGui::GetFont();
+	float fontSize = ImGui::GetFontSize();
+
+	if (font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, text.c_str()).x <= maxWidth)
+		return text;
+
+	const char* ellipsis = "...";
+	float ellipsisWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, ellipsis).x;
+
+	std::string result = text;
+
+	while (!result.empty())
+	{
+		result.pop_back();
+
+		float w = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, result.c_str()).x;
+		if (w + ellipsisWidth <= maxWidth)
+		{
+			result += ellipsis;
+			break;
+		}
+	}
+
+	return result;
+}
+
+FString ContentBrowserElement::GetDisplayName() const
+{
+	FString Extension = FPaths::ToUtf8(ContentItem.Path.extension());
+	std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
+	if (Extension == ".uasset")
+	{
+		return FPaths::ToUtf8(ContentItem.Path.stem().wstring());
+	}
+
+	return FPaths::ToUtf8(ContentItem.Name);
+}
+
+void DirectoryElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	Context.CurrentPath = ContentItem.Path;
+	Context.PendingRevealPath = ContentItem.Path;
+	Context.bPendingContentRefresh = true;
+}
+
+void SceneElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	std::filesystem::path ScenePath = ContentItem.Path;
+	FString FilePath = FPaths::ToUtf8(ScenePath.wstring());
+	UEditorEngine* EditorEngine = Context.EditorEngine;
+	EditorEngine->LoadSceneFromPath(FilePath);
+}
+
+void ObjectElement::RenderContextMenu(ContentBrowserContext& Context)
+{
+	FString Extension = FPaths::ToUtf8(ContentItem.Path.extension());
+	std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
+	FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+
+	if (Extension == ".obj")
+	{
+		const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+		if (ImGui::MenuItem("Import as Cloth Asset"))
+		{
+			ImportMeshSourceAsClothAssetForContentBrowser(Context, FilePath);
+		}
+		return;
+	}
+
+	if (Extension == ".uasset" && FMeshManager::IsStaticMeshPackage(PackagePath))
+	{
+		if (ImGui::MenuItem("Reimport"))
+		{
+			UStaticMesh* Reimported = nullptr;
+
+			if (Context.EditorEngine && FMeshManager::ReimportStaticMesh(
+					PackagePath,
+					Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice(),
+					Reimported
+			) && Reimported)
+			{
+				Context.bPendingContentRefresh = true;
+				Context.EditorEngine->OpenAssetEditorForObject(Reimported);
+			}
+		}
+	}
+}
+
+void ObjectElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		ShellExecuteW(nullptr, L"open", ContentItem.Path.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		return;
+	}
+
+	FString Extension = FPaths::ToUtf8(ContentItem.Path.extension());
+	std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+
+	if (Extension == ".uasset" && FMeshManager::IsStaticMeshPackage(PackagePath))
+	{
+		if (UStaticMesh* MeshAsset = FMeshManager::LoadStaticMesh(FilePath, Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice()))
+		{
+			Context.EditorEngine->OpenAssetEditorForObject(MeshAsset);
+		}
+		return;
+	}
+
+	ShellExecuteW(nullptr, L"open", ContentItem.Path.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+}
+
+void FloatCurveElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	if (UFloatCurveAsset* CurveAsset = FFloatCurveManager::Get().Load(FilePath))
+	{
+		Context.EditorEngine->OpenAssetEditorForObject(CurveAsset);
+	}
+}
+
+void CameraShakeElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	if (UCameraShakeAsset* ShakeAsset = FCameraShakeManager::Get().Load(FilePath))
+	{
+		Context.EditorEngine->OpenAssetEditorForObject(ShakeAsset);
+	}
+}
+
+void AnimGraphElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	if (UAnimGraphAsset* GraphAsset = FAnimGraphManager::Get().Load(FilePath))
+	{
+		Context.EditorEngine->OpenAssetEditorForObject(GraphAsset);
+	}
+}
+
+void ParticleSystemElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	if (UParticleSystem* ParticleSystem = FParticleSystemManager::Get().Load(FilePath))
+	{
+		Context.EditorEngine->OpenAssetEditorForObject(ParticleSystem);
+	}
+}
+
+void VectorFieldSourceElement::RenderContextMenu(ContentBrowserContext& Context)
+{
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	if (ImGui::MenuItem("Import Vector Field"))
+	{
+		ImportFgaVectorFieldForContentBrowser(Context, FilePath);
+	}
+}
+
+void VectorFieldSourceElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	ImportFgaVectorFieldForContentBrowser(Context, FilePath);
+}
+
+void VectorFieldElement::RenderContextMenu(ContentBrowserContext& Context)
+{
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+	if (ImGui::MenuItem("Reimport"))
+	{
+		FString Error;
+		UVectorFieldAsset* Reimported = nullptr;
+		if (FVectorFieldManager::Get().Reimport(PackagePath, &Reimported, &Error))
+		{
+			Context.bPendingContentRefresh = true;
+		}
+		else
+		{
+			UE_LOG("Vector field reimport failed: Package=%s Error=%s", PackagePath.c_str(), Error.c_str());
+		}
+	}
+}
+
+void VectorFieldElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	(void)Context;
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+	if (UVectorFieldAsset* Asset = FVectorFieldManager::Get().Load(PackagePath))
+	{
+		UE_LOG("Vector field asset loaded: %s (%dx%dx%d, %d vectors)",
+			PackagePath.c_str(),
+			Asset->GetSizeX(),
+			Asset->GetSizeY(),
+			Asset->GetSizeZ(),
+			Asset->GetVectorCount());
+	}
+}
+
+void VectorFieldElement::RenderDetail()
+{
+	ContentBrowserElement::RenderDetail();
+
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+	UVectorFieldAsset* Asset = FVectorFieldManager::Get().Load(PackagePath);
+	if (!Asset)
+	{
+		return;
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+	ImGui::TextUnformatted("Vector Field Data");
+
+	if (ImGui::BeginTable("VectorFieldDetailsTable", 2, ImGuiTableFlags_SizingStretchProp))
+	{
+		ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_WidthFixed, 72.0f);
+		ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+		char Resolution[64];
+		std::snprintf(Resolution, sizeof(Resolution), "%d x %d x %d", Asset->GetSizeX(), Asset->GetSizeY(), Asset->GetSizeZ());
+		DrawDetailRow("Resolution", Resolution);
+		DrawDetailRow("Vectors", std::to_string(Asset->GetVectorCount()));
+		DrawDetailRow("Bounds Min", FormatVector3ForContentBrowser(Asset->GetBoundsMin()));
+		DrawDetailRow("Bounds Max", FormatVector3ForContentBrowser(Asset->GetBoundsMax()));
+
+		ImGui::EndTable();
+	}
+}
+
+void MeshElement::RenderContextMenu(ContentBrowserContext& Context)
+{
+	FString Extension = FPaths::ToUtf8(ContentItem.Path.extension());
+	std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+
+	if (Extension == ".fbx")
+	{
+		const bool bHasImportedAsset = HasImportedFbxAssetForContentBrowser(FilePath);
+		if (bHasImportedAsset && ImGui::MenuItem("Open Imported Asset"))
+		{
+			TryOpenImportedFbxAssetForContentBrowser(Context, FilePath);
+		}
+
+		if (ImGui::MenuItem(bHasImportedAsset ? "Reimport Options..." : "Import Options..."))
+		{
+			FFbxImportOptionsDialog::BeginSceneImport(Context.FbxImportDialog, FilePath);
+
+			if (!Context.FbxImportDialog.bHasSkin && Context.FbxImportDialog.AnimationStacks.empty())
+			{
+				Context.FbxImportDialog = FFbxSceneImportDialogState {};
+				ReimportOrImportStaticFbxForContentBrowser(Context, FilePath);
+			}
+		}
+
+		if (ImGui::MenuItem("Import as Cloth Asset"))
+		{
+			ImportMeshSourceAsClothAssetForContentBrowser(Context, FilePath);
+		}
+		return;
+	}
+
+	if (Extension == ".uasset" && FMeshManager::IsSkeletalMeshPackage(PackagePath))
+	{
+		if (ImGui::MenuItem("Create Physics Asset"))
+		{
+			ID3D11Device* Device = Context.EditorEngine ? Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice() : nullptr;
+			if (Device)
+			{
+				if (USkeletalMesh* Mesh = FMeshManager::LoadSkeletalMesh(FilePath, Device))
+				{
+					CreatePhysicsAssetForBinding(Context, Mesh->GetSkeletonBinding(), ContentItem.Path);
+				}
+			}
+		}
+		if (ImGui::MenuItem("Reimport"))
+		{
+			USkeletalMesh* Reimported = nullptr;
+
+			const auto ReimportStart = std::chrono::steady_clock::now();
+			if (Context.EditorEngine && FMeshManager::ReimportSkeletalMesh(
+					PackagePath,
+					Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice(),
+					Reimported
+			) && Reimported)
+			{
+				const std::chrono::duration<double> Elapsed = std::chrono::steady_clock::now() - ReimportStart;
+				FMeshEditorWidget::RecordImportDurationForAsset(
+					Reimported->GetAssetPathFileName(),
+					Elapsed.count()
+				);
+				Context.bPendingContentRefresh = true;
+				Context.EditorEngine->OpenAssetEditorForObject(Reimported);
+			}
+		}
+	}
+}
+
+void MeshElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	const FString FilePath = FPaths::ToUtf8(ContentItem.Path.wstring());
+	FString Extension = FPaths::ToUtf8(ContentItem.Path.extension());
+	std::transform(Extension.begin(), Extension.end(), Extension.begin(), ::tolower);
+
+	if (Extension == ".fbx")
+	{
+		if (TryOpenImportedFbxAssetForContentBrowser(Context, FilePath))
+		{
+			return;
+		}
+
+		ImportFbxWithDefaultOptionsForContentBrowser(Context, FilePath);
+		return;
+	}
+
+	if (USkeletalMesh* MeshAsset = FMeshManager::LoadSkeletalMesh(FilePath, Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice()))
+	{
+		FMeshEditorWidget::ClearImportDurationForAsset(MeshAsset->GetAssetPathFileName());
+		Context.EditorEngine->OpenAssetEditorForObject(MeshAsset);
+	}
+}
+
+static USkeletalMesh* ResolveCompatibleSkeletalMeshForBinding(ContentBrowserContext& Context, const FSkeletonBinding& Binding)
+{
+	if (!Context.EditorEngine)
+	{
+		return nullptr;
+	}
+
+	ID3D11Device* Device = Context.EditorEngine->GetRenderer().GetFD3DDevice().GetDevice();
+
+	const TArray<FAssetListItem> Meshes = FAssetRegistry::ListMeshesForSkeleton(Binding, /*bAllowSameStructure=*/true);
+	for (const FAssetListItem& Item : Meshes)
+	{
+		if (USkeletalMesh* Mesh = FMeshManager::LoadSkeletalMesh(Item.FullPath, Device))
+		{
+			return Mesh;
+		}
+	}
+
+	return nullptr;
+}
+
+void AnimationElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+
+	EAssetPackageType PackageType = EAssetPackageType::Unknown;
+	if (!FAssetPackage::GetPackageType(PackagePath, PackageType))
+	{
+		return;
+	}
+
+	FSkeletonBinding Binding;
+	if (PackageType == EAssetPackageType::AnimSequence)
+	{
+		UAnimSequence* Seq = FAnimationManager::Get().LoadAnimation(PackagePath);
+		if (!Seq)
+		{
+			return;
+		}
+		Binding = Seq->GetSkeletonBinding();
+	}
+	else if (PackageType == EAssetPackageType::AnimMontage)
+	{
+		UAnimMontage* Montage = FAnimationManager::Get().LoadMontage(PackagePath);
+		if (!Montage)
+		{
+			return;
+		}
+		if (const UAnimSequence* Src = Montage->GetSourceSequence())
+		{
+			Binding = Src->GetSkeletonBinding();
+		}
+	}
+	else
+	{
+		return;
+	}
+
+	if (USkeletalMesh* Mesh = ResolveCompatibleSkeletalMeshForBinding(Context, Binding))
+	{
+		FMeshEditorWidget::ClearImportDurationForAsset(Mesh->GetAssetPathFileName());
+		Context.EditorEngine->OpenAssetEditorForObject(Mesh);
+	}
+}
+
+void SkeletonElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+
+	USkeleton* Skeleton = FSkeletonManager::Get().LoadSkeleton(PackagePath);
+	if (!Skeleton)
+	{
+		return;
+	}
+
+	if (USkeletalMesh* Mesh = ResolveCompatibleSkeletalMeshForBinding(Context, Skeleton->GetSkeletonBinding()))
+	{
+		FMeshEditorWidget::ClearImportDurationForAsset(Mesh->GetAssetPathFileName());
+		Context.EditorEngine->OpenAssetEditorForObject(Mesh);
+	}
+}
+
+// 스켈레톤 바인딩에 묶인 새 PhysicsAsset 을 소스(스켈레톤/메시) 옆에 만들고 연다.
+// 파일명: <소스 stem>_Physics.uasset (중복 시 _1, _2 …).
+static void CreatePhysicsAssetForBinding(ContentBrowserContext& Context, const FSkeletonBinding& Binding, const std::filesystem::path& SourcePath)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	UPhysicsAsset* Asset = UObjectManager::Get().CreateObject<UPhysicsAsset>();
+	if (!Asset)
+	{
+		return;
+	}
+	Asset->SkeletonBinding = Binding;
+
+	const std::filesystem::path Dir  = SourcePath.parent_path();
+	const FString               Stem = FPaths::ToUtf8(SourcePath.stem().wstring());
+	std::filesystem::path Candidate  = Dir / FPaths::ToWide(Stem + "_Physics.uasset");
+	int32 Suffix = 1;
+	while (std::filesystem::exists(Candidate))
+	{
+		Candidate = Dir / FPaths::ToWide(Stem + "_Physics_" + std::to_string(Suffix) + ".uasset");
+		++Suffix;
+	}
+
+	const FString PackagePath = FPaths::ToUtf8(Candidate.lexically_relative(FPaths::RootDir()).generic_wstring());
+	Asset->SetSourcePath(PackagePath);
+
+	if (FPhysicsAssetManager::Get().Save(Asset))
+	{
+		Context.bPendingContentRefresh = true;
+		Context.EditorEngine->OpenAssetEditorForObject(Asset);
+	}
+}
+
+void PhysicsAssetElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+	if (UPhysicsAsset* Asset = FPhysicsAssetManager::Get().Load(PackagePath))
+	{
+		Context.EditorEngine->OpenAssetEditorForObject(Asset);
+	}
+}
+
+void ClothAssetElement::OnDoubleLeftClicked(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+	if (UClothAsset* Asset = FClothAssetManager::Get().Load(PackagePath))
+	{
+		Context.EditorEngine->OpenAssetEditorForObject(Asset);
+	}
+}
+
+void ClothAssetElement::RenderDetail()
+{
+	ContentBrowserElement::RenderDetail();
+
+	const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+	UClothAsset* Asset = FClothAssetManager::Get().Load(PackagePath);
+	if (!Asset)
+	{
+		return;
+	}
+
+	uint32 PinnedCount = 0;
+	const TArray<float>& PinMask = Asset->GetPinMask();
+	const TArray<float>& InvMasses = Asset->GetInvMasses();
+	for (uint32 Index = 0; Index < Asset->GetParticleCount(); ++Index)
+	{
+		const bool bPinnedByMask = Index < PinMask.size() && PinMask[Index] > 0.0f;
+		const bool bPinnedByMass = Index < InvMasses.size() && InvMasses[Index] <= 0.0f;
+		if (bPinnedByMask || bPinnedByMass)
+		{
+			++PinnedCount;
+		}
+	}
+
+	ImGui::Spacing();
+	ImGui::TextUnformatted("Cloth Data");
+	if (ImGui::BeginTable("ClothAssetDetailsTable", 2, ImGuiTableFlags_SizingStretchProp))
+	{
+		ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_WidthFixed, 72.0f);
+		ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+		DrawDetailRow("Particles", std::to_string(Asset->GetParticleCount()));
+		DrawDetailRow("Triangles", std::to_string(Asset->GetIndexCount() / 3));
+		DrawDetailRow("Pinned", std::to_string(PinnedCount));
+		ImGui::EndTable();
+	}
+}
+
+void SkeletonElement::RenderContextMenu(ContentBrowserContext& Context)
+{
+	if (!Context.EditorEngine)
+	{
+		return;
+	}
+	if (ImGui::MenuItem("Create Physics Asset"))
+	{
+		const FString PackagePath = FPaths::ToUtf8(ContentItem.Path.lexically_relative(FPaths::RootDir()).generic_wstring());
+		if (USkeleton* Skeleton = FSkeletonManager::Get().LoadSkeleton(PackagePath))
+		{
+			CreatePhysicsAssetForBinding(Context, Skeleton->GetSkeletonBinding(), ContentItem.Path);
+		}
+	}
+}
+
+void MaterialElement::OnLeftClicked(ContentBrowserContext& Context)
+{
+	MaterialInspector = { ContentItem.Path };
+}
+
+void MaterialElement::RenderDetail()
+{
+	MaterialInspector.Render();
+}

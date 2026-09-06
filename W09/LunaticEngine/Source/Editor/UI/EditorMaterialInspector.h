@@ -1,0 +1,35 @@
+﻿#pragma once
+#include "imgui.h" 
+#include "Platform/Paths.h"
+#include "Core/CoreTypes.h"
+#include <fstream>
+#include <filesystem>
+#include "SimpleJSON/json.hpp"
+#include <wrl/client.h>
+#include <Engine/Materials/MaterialManager.h>
+
+struct ID3D11ShaderResourceView;
+
+class FEditorMaterialInspector final
+{
+public:
+	FEditorMaterialInspector() = default;
+	FEditorMaterialInspector(std::filesystem::path InPath);
+	void Render();
+	void SetVisible(bool bInVisible) { bVisible = bInVisible; }
+	bool IsVisible() const { return bVisible; }
+
+private:
+	void RenderPreview();
+	void RenderShaderParameter();
+	void RenderTextureSection();
+
+private:
+	std::filesystem::path MaterialPath;
+	json::JSON CachedJson;
+	UMaterial* CachedMaterial = nullptr;
+	bool bVisible = false;
+
+	TMap<FString, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> CachedSRVs;
+};
+

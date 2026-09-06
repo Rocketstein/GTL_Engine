@@ -1,0 +1,112 @@
+{
+  "format": "KraftonLuaBlueprint",
+  "version": 1,
+  "nodes": [
+    {
+      "id": 1, "type": 1, "displayName": "Event Tick", "pos": [-600.0, 0.0],
+      "nameValue": "", "stringValue": "", "boolValue": false, "intValue": 0,
+      "floatValue": 0.0, "vector": [0.0, 0.0, 0.0],
+      "pins": [
+        { "id": 2, "owningNodeId": 1, "kind": 1, "type": 0, "displayName": "Then",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 3, "owningNodeId": 1, "kind": 1, "type": 3, "displayName": "DeltaTime",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] }
+      ]
+    },
+    {
+      "id": 10, "type": 21, "displayName": "Get Enemy AI Brain Component", "pos": [-380.0, 0.0],
+      "nameValue": "GetEnemyAIBrainComponent", "stringValue": "", "boolValue": false, "intValue": 0,
+      "floatValue": 0.0, "vector": [0.0, 0.0, 0.0],
+      "pins": [
+        { "id": 11, "owningNodeId": 10, "kind": 0, "type": 0, "displayName": "In",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 12, "owningNodeId": 10, "kind": 0, "type": 6, "displayName": "Target",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 13, "owningNodeId": 10, "kind": 1, "type": 0, "displayName": "Then",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 14, "owningNodeId": 10, "kind": 1, "type": 7, "displayName": "Result",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] }
+      ]
+    },
+    {
+      "id": 20, "type": 21, "displayName": "Acquire Default Target", "pos": [-150.0, 0.0],
+      "nameValue": "AcquireDefaultTarget", "stringValue": "", "boolValue": false, "intValue": 0,
+      "floatValue": 0.0, "vector": [0.0, 0.0, 0.0],
+      "pins": [
+        { "id": 21, "owningNodeId": 20, "kind": 0, "type": 0, "displayName": "In",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 22, "owningNodeId": 20, "kind": 0, "type": 6, "displayName": "Target",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 23, "owningNodeId": 20, "kind": 1, "type": 0, "displayName": "Then",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 24, "owningNodeId": 20, "kind": 1, "type": 7, "displayName": "Result",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] }
+      ]
+    },
+    {
+      "id": 30, "type": 21, "displayName": "Face Target", "pos": [120.0, 0.0],
+      "nameValue": "FaceTarget", "stringValue": "", "boolValue": false, "intValue": 0,
+      "floatValue": 0.0, "vector": [0.0, 0.0, 0.0],
+      "pins": [
+        { "id": 31, "owningNodeId": 30, "kind": 0, "type": 0, "displayName": "In",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 32, "owningNodeId": 30, "kind": 0, "type": 6, "displayName": "Target",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 33, "owningNodeId": 30, "kind": 0, "type": 7, "displayName": "Arg0",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 34, "owningNodeId": 30, "kind": 0, "type": 7, "displayName": "Arg1",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 35, "owningNodeId": 30, "kind": 1, "type": 0, "displayName": "Then",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 36, "owningNodeId": 30, "kind": 1, "type": 7, "displayName": "Result",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] }
+      ]
+    },
+    {
+      "id": 40, "type": 21, "displayName": "Move To Target", "pos": [380.0, 0.0],
+      "nameValue": "MoveToTarget", "stringValue": "", "boolValue": false, "intValue": 0,
+      "floatValue": 0.0, "vector": [0.0, 0.0, 0.0],
+      "pins": [
+        { "id": 41, "owningNodeId": 40, "kind": 0, "type": 0, "displayName": "In",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 42, "owningNodeId": 40, "kind": 0, "type": 6, "displayName": "Target",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 43, "owningNodeId": 40, "kind": 0, "type": 7, "displayName": "Arg0",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 44, "owningNodeId": 40, "kind": 1, "type": 0, "displayName": "Then",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] },
+        { "id": 45, "owningNodeId": 40, "kind": 1, "type": 7, "displayName": "Result",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 0.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] }
+      ]
+    },
+    {
+      "id": 50, "type": 14, "displayName": "Literal Float", "pos": [120.0, 200.0],
+      "nameValue": "", "stringValue": "", "boolValue": false, "intValue": 0,
+      "floatValue": -1.0, "vector": [0.0, 0.0, 0.0],
+      "pins": [
+        { "id": 51, "owningNodeId": 50, "kind": 1, "type": 3, "displayName": "Value",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": -1.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] }
+      ]
+    },
+    {
+      "id": 55, "type": 14, "displayName": "Literal Float", "pos": [380.0, 200.0],
+      "nameValue": "", "stringValue": "", "boolValue": false, "intValue": 0,
+      "floatValue": 1.0, "vector": [0.0, 0.0, 0.0],
+      "pins": [
+        { "id": 56, "owningNodeId": 55, "kind": 1, "type": 3, "displayName": "Value",
+          "defaultBool": false, "defaultInt": 0, "defaultFloat": 1.0, "defaultString": "", "defaultVector": [0.0,0.0,0.0] }
+      ]
+    }
+  ],
+  "links": [
+    { "id": 100, "from": 2,  "to": 11 },
+    { "id": 101, "from": 13, "to": 21 },
+    { "id": 102, "from": 23, "to": 31 },
+    { "id": 103, "from": 35, "to": 41 },
+    { "id": 104, "from": 14, "to": 22 },
+    { "id": 105, "from": 3,  "to": 33 },
+    { "id": 106, "from": 51, "to": 34 },
+    { "id": 107, "from": 56, "to": 43 }
+  ],
+  "variables": []
+}
