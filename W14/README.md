@@ -62,7 +62,7 @@ Week 13까지 개발한 Krafton Engine의 Rendering, Animation, Physics, Particl
 - Scene Fade와 BGM Volume을 동기화하고 Credits에서 Title로 복귀할 때 음악이 재시작되지 않도록 처리
 - Project Settings가 중첩된 Scene Path를 인식하도록 수정하고 시작 Scene을 `Game/GameTitle`로 설정
 
-대표 구현: [`TitleMenu.lua`](./KraftonEngine/Content/Script/Game/TitleMenu.lua), [`SceneTransition.lua`](./KraftonEngine/Content/Script/Game/SceneTransition.lua), [`BGMState.lua`](./KraftonEngine/Content/Script/Game/BGMState.lua), [`Controls.rml`](./KraftonEngine/Content/Game/UI/Controls.rml)
+대표 구현: [`TitleMenu.lua`](./KraftonEngine/Content/Script/Game/TitleMenu.lua), [`SceneTransition.lua`](./KraftonEngine/Content/Script/Game/SceneTransition.lua), [`BGMState.lua`](./KraftonEngine/Content/Script/Game/BGMState.lua), `Controls.rml`
 
 ### 4. Blood Moon·Boss Intro와 Enemy Spawn 연출
 
