@@ -1,3 +1,220 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 13 — Krafton Engine: PhysX Simulation & Advanced Rendering
+
+> A project integrating PhysX vehicles, ragdolls, cloth, physics-asset editing, and DOF/HDR/Bloom post-processing into a custom DirectX 11 engine.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original collaborative project](https://github.com/CaptainTangerine/Jungle_Week13_Team4).
+
+## Project Overview
+
+Building on the Week 12 engine, we extended the connections among a PhysX 4.1 physics scene, animation, and rendering. Physics Assets define skeletal bodies and constraints for ragdolls, while four-wheeled vehicles and NvCloth simulation run within the same engine runtime. On the rendering side, the project adds per-camera post-process settings together with depth of field, HDR, and Bloom pipelines.
+
+The final team project supports collision filtering, a Physics Asset Editor, ragdolls, vehicles, NvCloth, DOF, HDR, and Bloom.
+
+- **Core development period:** 29 May–3 June 2026
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, HLSL, PhysX 4.1, NvCloth, Dear ImGui, FMOD
+- **Areas of responsibility:** PhysX vehicles, camera post-processing and DOF integration, Physics Asset debug rendering, and physics profiling
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- PhysX-scene creation of Actors, shapes, and constraints, with simulation/fetch/transform synchronisation
+- Collision channels and masks, simulation/query filters, and contact/trigger callbacks
+- Physics Asset body and constraint editing with bidirectional transitions between skeletal animation and ragdolls
+- Four-wheeled vehicles with suspension raycasts, tyre friction, steering, braking, and automatic gear simulation
+- NvCloth assets, simulation Components, and a dedicated editor
+- Per-camera aperture, focus distance, focal length, and sample settings
+- DOF built from half-resolution CoC and blur passes with full-resolution compositing
+- HDR render targets, Bloom downsampling/upsampling, and gamma correction
+- Wireframe and solid debug rendering for physics bodies and constraints
+- Runtime profiling overlays and console commands for physics, collision, skinning, and other systems
+
+## My Contributions
+
+### 1. Parametric Four-Wheeled PhysX Vehicle System
+
+- Implemented `UWheeledVehicleMovementComponent` and `AWheeledVehicle`, integrating `PxVehicleDrive4W` with the engine's Pawn/Component architecture
+- Derived chassis dimensions, wheel radius/width, and wheel centres from chassis and wheel mesh bounds, then created convex geometry at runtime
+- Configured chassis mass, inertia, centre of mass, suspension, tyres, differential, engine, gears, clutch, and Ackermann geometry
+- Added vehicle registration/removal, surface–tyre friction pairs, and shared batched suspension-raycast buffers to `FPhysXVehicleManager`
+- Applied analogue-input smoothing and speed-dependent steering scales, and implemented auto-reverse by braking before changing gear when switching between forward and reverse input
+- Read chassis world pose and wheel-local poses after physics updates and synchronised them with the Actor and four wheel-mesh Components
+- Removed vehicle Actors from ordinary body synchronisation so the manager became the single writer of simulation results
+
+Representative commits: [`bdfb326a`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/bdfb326a306e7c9499eb8eefa5fc02708850a11f), [`d0be345e`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/d0be345ef345ac6b3883b25a500399ac49067c46), [`c1e30e11`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/c1e30e11f6f8f1db37855d8ab26717cb89c7b43f74e0df49)
+
+### 2. Vehicle Demo Scene and Engine-Audio Feedback
+
+- Added car-body and wheel assets and materials to the engine content pipeline and built `DriveDemo.Scene`
+- Made vehicle sizing reusable across meshes by automatically deriving physics parameters from static-mesh extents
+- Exposed engine angular velocity and gear ratio through the Vehicle Movement Component
+- Connected an engine loop to the FMOD Audio Manager and varied sound pitch with engine speed
+- Completed a single-scene demonstration covering vehicle creation, simulation, wheel poses, and audio
+
+Representative commits: [`18cb16cd`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/18cb16cd9508ae65f1d93c81820547d7c0101afa), [`e1f1be34`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/e1f1be34558c55000d4278b4227fd2cf8c722fad), [`47b6cca7`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/47b6cca7ab236f1db37855d8ab26717cb89c7b43), [`464c1a13`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/464c1a1302203f05719a8cd693d937dd163df364)
+
+### 3. Camera Post-Process Settings and the DOF Render Path
+
+- Added the reflectable and serialisable `FPostProcessSettings` structure containing aperture, focus distance, focal length, and sample count
+- Connected post-process settings to `UCameraComponent` and exposed them in the editor Inspector
+- Implemented the camera-override path that transfers active-camera settings into `FViewportRenderOptions` for the game render pipeline during PIE
+- Built DOF CoC and blur resources at half resolution and combined them with full-resolution scene colour in the final composite pass
+- Explicitly unbound textures, switched render targets and viewports, and restored state after passes to prevent Direct3D 11 resource hazards
+- Corrected downsample-resource sizing so odd viewport dimensions still receive sufficient coverage
+
+Representative commits: [`2122aeed`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/2122aeedb36a74e4153e1a8fb9752f18ed05a05c), [`0dc47ef5`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/0dc47ef5d330b47f142b246128a2c8748e2e043a), [`5fcf898a`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/5fcf898acbcd1edaf27e6a8ed0b68e2127ea8d44), [`8a8a8e1b`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/8a8a8e1bb5bae79df9cde0af291efc2ac0b7b7ce)
+
+### 4. Solid Physics-Asset Debug Rendering and Overlay Pass
+
+- Implemented a solid-geometry builder that produces position/normal triangle soups for Physics Asset spheres, boxes, and capsules in addition to wire lines
+- Generated smooth sphere normals, per-face box normals, and cylinder/hemisphere capsule geometry according to primitive conventions
+- Added a minimal lighting shader and vertex format for physics bodies and connected them to debug draw commands
+- Consolidated multiple triangle geometries in `BuildPhysicsBodyCommands` to simplify Physics Asset debug submission
+- Propagated selected-body highlighting, body/constraint visibility, and solid/wireframe toggles through the scene-proxy cache
+- Added `OverlayAlphaPass` to composite translucent physics bodies while preserving depth, and routed the Physics Asset Debug Component through it
+
+Representative commits: [`4049ca07`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/4049ca0798d8b4d10a09c64ac2b95987accd56e0), [`92d5d854`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/92d5d854021fe7d5d4c8d8659ce0a9a8c600fa66), [`b1d16ac0`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/b1d16ac0f8d7a71b84f0f3fbf60a828ab3c50ba4), [`7067b877`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/7067b8773c644160540724272c9cc3c8c7fb46ab), [`f9e6c9ad`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/f9e6c9adcf6bf54d2632377fcc1c3dcc96e607c8)
+
+### 5. Physics Profiling and Console Integration
+
+- Added `FPhysicsStats` to collect the number of active constraints and simulating dynamic bodies in each frame
+- Extracted valid physics counters from `PxSimulationStatistics` after `fetchResults`
+- Combined existing `FStatManager` timing snapshots with physics counters in a single overlay
+- Registered the `stat physics` command with the editor Console and managed the overlay's visibility state
+- Reset statistics when restarting a scene or switching worlds so counters from the previous frame did not remain visible
+
+Representative commits: [`8b6060ae`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/8b6060ae7f446f70ae3c879b2859748451a10db1), [`20aed4fa`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/20aed4fade5a9ef200681d035d8a81eacdfb2007)
+
+## Vehicle-Simulation Architecture
+
+```text
+Player Input
+ Throttle / Brake / Steering / Handbrake
+        │
+        ▼
+UWheeledVehicleMovementComponent
+ Parametric Chassis / Wheel Setup
+        │ Register
+        ▼
+FPhysXVehicleManager::PreTick
+ Gear Selection → Input Smoothing → Speed-Based Steering
+        │
+        ▼
+Batch Suspension Raycast
+        │
+        ▼
+PxVehicleUpdates
+ Tyre Friction / Suspension / Engine / Gear
+        │
+        ├─ Chassis World Pose ──▶ AWheeledVehicle Transform
+        ├─ Wheel Local Poses ───▶ Four Wheel-Mesh Components
+        └─ Engine Omega ────────▶ FMOD Engine-Sound Pitch
+```
+
+Because physics geometry is derived from mesh dimensions, chassis and wheel parameters can adapt automatically when content changes. The manager batches suspension queries across vehicles and sends the resulting poses back to the transforms used by rendering Components.
+
+## Camera DOF and Debug-Rendering Flow
+
+```text
+Active UCameraComponent
+ FPostProcessSettings
+        │
+        ▼
+FViewportRenderOptions
+        │
+        ├─ CoC Pass ─────── Half Resolution
+        ├─ Blur Pass ────── Half Resolution
+        └─ Composite Pass ─ Full-Resolution Scene Colour
+
+UPhysicsAssetDebugComponent
+ Body / Constraint / Selection State
+        │
+        ▼
+FPhysicsAssetDebugSceneProxy
+ Wire Lines + Solid Triangle Soup
+        │
+        ├─ Wireframe Debug Draw
+        └─ Physics Body Shader → OverlayAlphaPass
+```
+
+Editor and PIE pipelines share the same camera post-process structure. The Physics Asset debug Component stores display state as a snapshot and submits its geometry separately to wireframe and translucent-solid paths.
+
+## Validation Workflow
+
+1. Open `DriveDemo.Scene`, start PIE, and verify chassis/wheel poses and engine-audio integration.
+2. Adjust aperture, focus distance, focal length, and DOF samples on a Camera Component to compare post-process results.
+3. Toggle body/constraint and solid/wireframe visibility in the Physics Asset Editor and inspect selected-body highlighting.
+4. Run `stat physics` in the editor Console to inspect physics timing, active constraints, and simulating-body counters.
+5. Resize the viewport and verify that half-resolution DOF resources and the full-resolution composite update together.
+
+## Project Structure
+
+```text
+.
+├─ KraftonEngine.sln
+├─ Docs/                                  # HDR/Bloom, reflection, and Physics API docs
+├─ KraftonEngine/
+│  ├─ Content/
+│  │  ├─ Audio/                          # Vehicle engine sound
+│  │  ├─ Material/                       # Car and physics-debug materials
+│  │  └─ Scene/DriveDemo.Scene
+│  ├─ Shaders/
+│  │  ├─ Editor/PhysicsBody.hlsl
+│  │  └─ PostProcess/                    # DOF, HDR, Bloom, Gamma
+│  └─ Source/
+│     ├─ Editor/UI/Asset/                 # Physics Asset and cloth editors
+│     └─ Engine/
+│        ├─ Component/
+│        │  ├─ Movement/WheeledVehicleMovementComponent.*
+│        │  └─ Debug/PhysicsAssetDebugComponent.*
+│        ├─ GameFramework/Pawn/WheeledVehicle.*
+│        ├─ Physics/
+│        │  ├─ PhysXPhysicsScene.*
+│        │  ├─ PhysXVehicleManager.*
+│        │  └─ Asset/                     # Bodies, constraints, Physics Assets
+│        ├─ Profiling/Stats/PhysicsStats.*
+│        └─ Render/
+│           ├─ Proxy/PhysicsAssetDebugSceneProxy.*
+│           └─ RenderPass/                # DOF, OverlayAlpha, HDR, Bloom
+├─ Scripts/
+├─ GenerateProjectFiles.bat
+├─ GameBuild.bat
+└─ ReleaseBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- NuGet package restore
+
+The project uses the NuGet package `directxtk_desktop_win10`, together with repository-provided Lua, RmlUi, FMOD, FBX SDK, PhysX, and NvCloth libraries.
+
+### Build Instructions
+
+1. Run `GenerateProjectFiles.bat` if Visual Studio project files need to be generated.
+2. Open `KraftonEngine.sln` in Visual Studio.
+3. Restore NuGet packages.
+4. Build and run `Debug | x64` or `Release | x64`.
+
+Use `GameBuild.bat` for a game-runtime build and `ReleaseBuild.bat` for a distributable build.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [CaptainTangerine/Jungle_Week13_Team4](https://github.com/CaptainTangerine/Jungle_Week13_Team4).
+- Week 13 contributions were counted from the repository's creation on 29 May 2026. The 33 top-level commits attributed to Rocketstein include merges and squashes.
+- Contributions were identified by comparing not only commit messages but also changed files and the final implementation.
+- Physics-scene core work, collision, ragdolls, the Physics Asset Editor, NvCloth, and final HDR/Bloom integration also include work by other team members.
+
+---
+
+## 한국어
+
 # Week 13 — Krafton Engine: PhysX Simulation & Advanced Rendering
 
 > DirectX 11 기반 커스텀 엔진에 PhysX 차량·Ragdoll·Cloth와 Physics Asset 편집 흐름, DOF·HDR·Bloom 후처리를 통합한 프로젝트입니다.  
@@ -208,4 +425,3 @@ Camera의 Post Process 값은 Editor와 PIE Pipeline이 같은 구조를 공유�
 - 원본 저장소 생성일인 2026.05.29부터 Week 13 기여를 집계했으며, Rocketstein 작성자 정보로 기록된 33개 Top-level Commit에는 Merge·Squash Commit이 포함되어 있습니다.
 - 담당 작업은 Commit Message만이 아니라 변경 File과 최종 구현을 함께 대조해 정리했습니다.
 - Physics Scene Core, Collision, Ragdoll, Physics Asset Editor, NvCloth와 HDR·Bloom의 최종 통합에는 팀원의 작업도 포함되어 있습니다.
-
