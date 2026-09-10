@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Second Jungle Tech Lab Game Jam
@@ -7,6 +9,8 @@
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # jungle-techlab-gamejam-2nd
 All for Optimization (AFO)
