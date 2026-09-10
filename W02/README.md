@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 2 — ZZUP Engine
@@ -114,6 +116,8 @@ The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 2 — ZZUP Engine
 

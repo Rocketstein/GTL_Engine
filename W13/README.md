@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 13 — Krafton Engine: PhysX Simulation & Advanced Rendering
@@ -214,6 +216,8 @@ Use `GameBuild.bat` for a game-runtime build and `ReleaseBuild.bat` for a distri
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 13 — Krafton Engine: PhysX Simulation & Advanced Rendering
 

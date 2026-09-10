@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 4 — CO-PASS Engine
@@ -541,6 +543,8 @@ A level editor and rendering sandbox for the CO-PASS project.
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 4 — CO-PASS Engine
 

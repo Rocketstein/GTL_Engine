@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 14 — Krafton Engine Final Game: Game Flow, Lock-On & Encounter Direction
@@ -224,6 +226,8 @@ The standalone game starts from the `Game/GameTitle` scene configured in `Projec
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 14 — Krafton Engine Final Game: Game Flow · Lock-on · Encounter Direction
 

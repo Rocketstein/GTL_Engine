@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 9 — Lunatic Engine
@@ -185,6 +187,8 @@ The project uses `directxtk_desktop_win10` and `luajit.native` through NuGet.
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 9 — Lunatic Engine
 

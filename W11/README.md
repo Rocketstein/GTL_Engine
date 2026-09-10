@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 11 — Krafton Engine: Property Reflection
@@ -177,6 +179,8 @@ UCLASS / USTRUCT / UENUM / UPROPERTY
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 11 — Krafton Engine: Property Reflection
 

@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 6 — Nips Engine
@@ -202,6 +204,8 @@ The project uses `directxtk_desktop_win10` through NuGet and targets C++20.
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 6 — Nips Engine
 

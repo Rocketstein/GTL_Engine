@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 7 — Nips Engine
@@ -208,6 +210,8 @@ The `ObjViewer | x64` configuration remains available, but Week 7's main work is
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 7 — Nips Engine
 
