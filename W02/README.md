@@ -1,3 +1,120 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 2 — ZZUP Engine
+
+> A game engine and editor project built with C++ and DirectX 11.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original team project](https://github.com/JHCard7872/Week2).
+
+## Project Overview
+
+I implemented core game-engine workflows, including the rendering loop, an object–component architecture, cameras, picking, transform gizmos, scene serialisation, and ImGui-based editing tools.
+
+- **Development period:** 13–18 March 2026
+- **Development environment:** Windows, Visual Studio 2022, C++17
+- **Key technologies:** DirectX 11, HLSL, Dear ImGui, JSON
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- DirectX 11 primitive rendering and render-pass management
+- A `UObject`-based `AActor` / `UActorComponent` architecture with runtime type information
+- Perspective and orthographic cameras with keyboard and mouse viewport controls
+- Ray-casting-based object picking
+- Translation, rotation, and scale gizmos with world/local coordinate-space switching
+- ImGui tools for object creation, property editing, deletion, console output, and status monitoring
+- JSON-based scene save/load support and a New Scene workflow
+- `UObject` as the root object class, together with an object factory pattern
+
+## My Contributions
+
+### 1. Engine Mathematics, Camera, and Input Foundations
+
+- Implemented operations for `FVector`, `FVector4`, and `FMatrix`, establishing the engine's transformation-matrix foundation
+- Implemented cameras using view and projection matrices
+- Refactored the camera into a `USceneComponent` so that it participates in the transform hierarchy
+- Implemented keyboard movement, mouse-drag rotation, wheel zoom, and perspective/orthographic switching, and corrected several control issues
+
+Representative commits: [`0236441`](https://github.com/JHCard7872/Week2/commit/0236441), [`314fc53`](https://github.com/JHCard7872/Week2/commit/314fc53), [`9d51e26`](https://github.com/JHCard7872/Week2/commit/9d51e26), [`08bd010`](https://github.com/JHCard7872/Week2/commit/08bd010), [`7de8997`](https://github.com/JHCard7872/Week2/commit/7de8997)
+
+### 2. Object and World Architecture with Lifetime Management
+
+- Designed and implemented `UWorld`, `AActor`, and `UObjectManager`
+- Added macro-based runtime type information with `IsA` and `Cast` support
+- Established Actor–Component ownership and root-component relationships
+- Implemented deferred cleanup for pending-kill objects and fixed memory-related errors
+- Laid the foundation for an object factory capable of creating objects from type names
+
+Representative commits: [`442fbe4`](https://github.com/JHCard7872/Week2/commit/442fbe4), [`2447db4`](https://github.com/JHCard7872/Week2/commit/2447db4), [`14e5f9b`](https://github.com/JHCard7872/Week2/commit/14e5f9b), [`9376142`](https://github.com/JHCard7872/Week2/commit/9376142), [`e80a445`](https://github.com/JHCard7872/Week2/commit/e80a445)
+
+### 3. Render Collection and Editor Interaction
+
+- Introduced `FRenderCollector` to gather render data from worlds, actors, and components
+- Implemented picking by converting screen coordinates into a world-space ray and selecting the nearest primitive
+- Connected selected-object data to an ImGui panel for real-time transform editing
+- Improved gizmo dragging, axis selection, on-screen size compensation, and console feedback across translation, rotation, and scale modes
+
+Representative commits: [`dfdc2ad`](https://github.com/JHCard7872/Week2/commit/dfdc2ad), [`2501ef2`](https://github.com/JHCard7872/Week2/commit/2501ef2), [`ac91906`](https://github.com/JHCard7872/Week2/commit/ac91906), [`dcb967e`](https://github.com/JHCard7872/Week2/commit/dcb967e)
+
+### 4. Scene Serialisation and Editor Workflow
+
+- Implemented `FSceneSaveManager` to serialise and restore object types and transforms in JSON
+- Integrated New, Save, and Load Scene operations into the ImGui control panel
+- Safely reset the UI selection state and viewport after loading a scene
+- Fixed crashes caused by invalid paths, repeated save/load operations, and file-I/O conflicts
+- Improved scene-operation notifications, FOV and camera controls, and multi-object spawning
+
+Representative commits: [`3ffbf67`](https://github.com/JHCard7872/Week2/commit/3ffbf67), [`bf68f99`](https://github.com/JHCard7872/Week2/commit/bf68f99), [`8109fef`](https://github.com/JHCard7872/Week2/commit/8109fef), [`43056a8`](https://github.com/JHCard7872/Week2/commit/43056a8), [`7577e9f`](https://github.com/JHCard7872/Week2/commit/7577e9f)
+
+## Controls
+
+| Input | Action |
+| --- | --- |
+| `W` / `A` / `S` / `D` | Move the camera forwards/backwards and left/right |
+| `Q` / `E` | Move the camera down/up |
+| Arrow keys or right-mouse drag | Rotate the camera |
+| Mouse wheel | Adjust FOV or orthographic width |
+| `O` | Switch between perspective and orthographic projection |
+| Left click | Select an object or gizmo axis |
+| Left-mouse drag | Edit the transform using the selected gizmo |
+| `Space` | Cycle Translate → Rotate → Scale modes |
+
+The ImGui **Jungle Control Panel** provides controls for creating primitives, saving and loading scenes, changing camera settings, and selecting gizmo modes and coordinate spaces.
+
+## Project Structure
+
+```text
+Week2/
+├─ Editor/                 # Editor engine, viewport input, ImGui UI
+├─ Engine/
+│  ├─ Classes/            # Actor hierarchy
+│  ├─ Core/               # Input, shared types, console
+│  ├─ Math/               # Vectors, matrices, maths utilities
+│  ├─ Physics/            # Collision and ray types
+│  ├─ Render/             # D3D11 device, resources, render commands, collection, pipeline
+│  └─ Scene/              # Camera and scene-save manager
+├─ Object/                # UObject, object manager, object factory
+├─ World/                 # Components, primitives, gizmos, meshes
+├─ Saves/                 # Saved scene data
+└─ ShaderW0.hlsl          # Primitive, grid, outline, and gizmo shaders
+```
+
+## Building and Running
+
+1. Open `Week2.sln` in Visual Studio 2022 on Windows.
+2. Select a `Debug` or `Release` configuration for `x64`.
+3. Build and run the solution.
+
+The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [JHCard7872/Week2](https://github.com/JHCard7872/Week2).
+- The individual contributions documented here were identified by reviewing author metadata, commit messages, and the files changed in the original repository.
+
+---
+
+## 한국어
+
 # Week 2 — ZZUP Engine
 
 > C++와 DirectX 11로 구현한 게임 엔진 및 에디터 프로젝트입니다.  
