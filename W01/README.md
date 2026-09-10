@@ -1,3 +1,44 @@
+> **Languages:** English · [한국어](#한국어)
+
+# 🕹️ [Head Soccer] Play Football or Die Trying!
+
+## Project Overview
+
+A two-player competitive football game inspired by the core mechanics of **Head Soccer**.
+
+- **Development period:** 9–12 March 2026
+- **Team size:** 4
+- **Genre:** Sports, football, two-player versus
+- **Technologies:** C++, Win32 API, DirectX 11, Dear ImGui, SoLoud
+
+## About the Game
+
+Two players select their characters and compete to score as many goals as possible before the timer runs out.
+
+Choose a character and start the match. Use powerful special abilities to launch attacks that are difficult for your opponent to defend against. The player who scores the most goals within the time limit wins.
+
+The win/loss result shown on the results screen is presented from Player 1's perspective.
+
+## Controls
+
+### Player 1
+
+- **Move:** `A` / `D`
+- **Jump:** `W`
+- **Kick:** `Space`
+- **Skill:** `Left Shift`
+
+### Player 2
+
+- **Move:** `←` / `→`
+- **Jump:** `↑`
+- **Kick:** `Right Shift`
+- **Skill:** `/` (slash)
+
+---
+
+## 한국어
+
 # 🕹️ \[Head Soccer] 슬슬 축구를 하지 않으면 죽는다!
 
 

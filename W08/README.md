@@ -1,3 +1,210 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 8 — Krafton Engine: Shadow Mapping
+
+> A project that adds directional cascaded shadow maps and spot/point-light shadow atlases to a custom DirectX 11 engine.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original collaborative project](https://github.com/shimwoojin/Jungle_Week8_Team2).
+
+## Project Overview
+
+Building on the Week 7 lighting and light-culling renderer, we extended the shadow-rendering pipeline so directional, spot, and point lights could cast dynamic shadows from scene geometry. Directional lights use a four-cascade Cascaded Shadow Map, while multiple spot and point lights share shadow atlases whose resolution is allocated according to estimated screen contribution.
+
+The final team project supports hard shadows, PCF and VSM filtering, multiple atlas pages, shadow-caster frustum culling, and shadow-map debug views.
+
+- **Development period:** 23–29 April 2026
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, HLSL, shadow mapping, CSM, PCF, VSM, Dear ImGui
+- **Areas of responsibility:** Spot/point shadow atlases, adaptive resolution and batch allocation, shadow-quality and resource stabilisation, InterpToMovement integration
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- Four-cascade shadow maps with cascade blending for directional lights
+- A 2D shadow atlas for spot lights and cube-face atlas regions for point lights
+- Screen-contribution-based shadow-resolution estimation and power-of-two tile allocation
+- Multiple atlas pages according to capacity, with resolution reduction when the page limit is exceeded
+- Hard, PCF, and VSM shadow filters with separable Gaussian blur
+- Per-light bias, slope bias, normal bias, sharpening, and resolution-scale controls
+- Shadow-caster frustum culling and rendering statistics
+- Debug widgets for inspecting CSM, spot and point shadow maps, atlas pages, and allocated regions
+- `UInterpToMovementComponent` for movement along control points
+- Scene editing and serialisation, picking, gizmos, and multipass rendering
+
+## My Contributions
+
+### 1. Buddy-Allocation Shadow-Atlas Quadtree
+
+- Implemented `FShadowAtlasQuadTree`, using a buddy-style scheme that treats the full atlas as the root node and recursively subdivides it into four until the requested size is reached
+- Stored each node's position, resolution, occupied/split state, and child indices, then recursively searched for the best-fitting tile
+- Returned allocations as pixel coordinates and dimensions in `FAtlasRegion` for use by viewports and shader UV transforms
+- Corrected failed allocations for non-power-of-two requests and added a minimum-resolution bound
+- Changed `RemainingSpace` tracking from linear extent to actual area
+
+Representative commits: [`b50951fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b50951fc52101e79e1aed10d44b8636aaecee9a3), [`b7e873e5`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b7e873e5bd8ad04f72a89d2f267bf976f00b5d7d), [`908b85fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/908b85fc86f060e87ef0b331842fe841851074c8), [`90021817`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/90021817ec43c3ea3f640ead3f6484e1ab4fd408)
+
+### 2. Screen-Contribution-Based Adaptive Resolution and Batch Allocation
+
+- Estimated each light's projected screen area from camera position, direction, FOV, and light radius
+- Calculated requested resolution from projected area, colour luminance, intensity, and `ShadowResolutionScale`
+- Normalised requests to the nearest power of two and clamped them to the atlas's minimum and maximum sizes
+- Batched light requests and allocated larger tiles first, reducing fragmentation caused by servicing small requests before large ones
+- Replaced immediate per-light region creation with an `AddToBatch → CommitBatch` flow
+
+Representative commits: [`596285f3`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/596285f3f98449d8da84f14b737a94947f74f706), [`56b33649`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/56b33649b73e8ce1b94ee0464e26b8ef27357b7c), [`54065540`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/540655405e1d6d8679bcae784e1999a319781629), [`6389d443`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/6389d44342b79a675b3b3839db2dbf15ee8d9f01)
+
+### 3. Spot-Light Shadow-Atlas Rendering Path
+
+- Connected spot-light view/projection matrices, atlas viewports, and depth rendering to `ShadowMapPass`
+- Used `FSpotLightParams` as the atlas-evaluation input and applied per-light resolution scales
+- Fixed batch-to-region mapping errors that prevented several spot lights from casting shadows simultaneously
+- Bound the spot-atlas texture and shadow data to shader-resource slots and added atlas-region debug overlays
+- Switched the shadow-depth pass to front-face culling and resolved resource hazards in the VSM path
+
+Representative commits: [`aa82dbc6`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/aa82dbc69b592bdd7799af92ba63fa0c27bfce6d), [`50b70965`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/50b70965fd31512ea99fb9f72914b684602eaed3), [`c4feee67`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/c4feee6703c7b692e59d8f457cb8376e617ddce8), [`9b8a9881`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9b8a98812095744fac42182c783257e380f8e367), [`28e7b91c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/28e7b91c7f67fd971e9e42f874ffb55861a0c199)
+
+### 4. Point-Light Cube-Face Atlas
+
+- Extracted the shared node-allocation logic into `FAtlasQuadTreeBase` and extended it with dedicated spot- and point-light evaluation classes
+- Allocated the six +X, -X, +Y, -Y, +Z, and -Z views of each point light as independent atlas regions
+- Recorded the light index and cube-face orientation in `FAtlasRegion` and connected them to GPU shadow data
+- Replaced the existing `Texture2DArray` point-shadow path with atlas allocation and screen-contribution-based resolution evaluation
+- Corrected point-atlas region-frame display, the resolution-evaluation formula, and `ShadowResolutionScale` behaviour
+
+Representative commits: [`37a1980d`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/37a1980d140e6c4df70dabc859e0c2345f72ca53), [`46668f33`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/46668f337c300a5181f52195b76a671e847f41e0), [`0ee6f506`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/0ee6f506e0f650572aa0c7dbf9d2ecb80993952f), [`3693075c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/3693075c5afa8fda93e77cda0be8c8cc357ebcfa), [`85ca1401`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/85ca1401af33636cfd8ee8105966b4f182d0b824)
+
+### 5. Shadow-Quality Corrections and Engine Integration
+
+- Sent separate normal-bias values for directional, spot, and point lights through the constant-buffer path
+- Fixed cases where normal bias was not updated before GPU upload or referenced another light's constants
+- Expanded editor ranges so negative bias values could be configured in light properties
+- Resolved a Direct3D 11 read/write hazard caused by binding the previous frame's shadow SRV while using the same resource as a depth target
+- Ported `UInterpToMovementComponent` from the previous week into the evolved engine architecture and reconnected its property UI, `Vec3Array` serialisation, and demo-scene usage
+- Prepared `w8demo.Scene` to demonstrate and test spot/point atlases and InterpToMovement
+
+Representative commits: [`059f72ef`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/059f72ef74062c09c7af4d9b0ea0e33e28abdb5b), [`8fd509d9`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/8fd509d9609c655a0cc86865ed4e091e881690c8), [`fd58635a`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/fd58635a9895b6301aafc12e2523990915762d1b), [`9eeaaa58`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9eeaaa5886bc05a1616c7a5b2070568a9f55520e), [`38a0e89f`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/38a0e89f48afbb6f1dd1d2a42ea59ec1f5db1104)
+
+## Shadow-Rendering Architecture
+
+```text
+SceneEnvironment
+ Directional / Spot / Point Lights
+              │
+              ▼
+   Shadow Light Frustum Culling
+              │
+      ┌───────┴────────┐
+      ▼                ▼
+Directional CSM   Spot / Point Lights
+ 4 Cascades       Screen-Contribution Evaluation
+      │                │
+      │         Page Grouping
+      │                │
+      │         Quadtree Batch Allocation
+      │          Spot: 1 face / Point: 6 faces
+      └───────┬────────┘
+              ▼
+      Shadow Depth Pass
+     Front Cull + Caster Cull
+              │
+       ┌──────┴──────┐
+       ▼             ▼
+ Hard / PCF       VSM Moments
+ Depth SRV       Gaussian Blur
+       └──────┬──────┘
+              ▼
+   Forward Lighting Shader
+```
+
+For each visible shadow-casting light, the spot/point atlas estimates the required resolution every frame. The final architecture groups lights into pages according to an atlas-area budget. If the page limit would be exceeded, it proportionally reduces requested resolutions, then places the largest tiles first in each page's quadtree.
+
+## Shadow Settings and Debugging
+
+The default shadow settings in `KraftonEngine/Settings/ProjectSettings.ini` are:
+
+| Setting | Default | Description |
+| --- | ---: | --- |
+| `CSMResolution` | 2048 | Resolution of each directional-light CSM cascade |
+| `SpotAtlasResolution` | 4096 | Size of one spot-atlas page |
+| `PointAtlasResolution` | 4096 | Size of one point-atlas page |
+| `MaxSpotAtlasPages` | 4 | Maximum number of spot-atlas pages |
+| `MaxPointAtlasPages` | 4 | Maximum number of point-atlas pages |
+| `bShadows` | `true` | Enables or disables shadows globally |
+
+The editor's **Shadow Map Debug** window can display:
+
+- CSM cascades C0–C3 and their near/far ranges
+- Per-page depth for spot and point atlases
+- Allocated light indices, region boundaries, and tile resolutions
+- The selected spot light's region or all six cube faces of a point light
+- Linear and power visualisations with adjustable brightness
+
+## Project Structure
+
+```text
+.
+├─ KraftonEngine.sln
+├─ KraftonEngine/
+│  ├─ Asset/Scene/                    # Test and demo scenes
+│  ├─ Settings/                       # Editor and project settings
+│  ├─ Shaders/
+│  │  ├─ Common/ShadowSampling.hlsli
+│  │  ├─ Lighting/ShadowDepth.hlsl
+│  │  └─ PostProcess/ShadowMapVis.hlsl
+│  └─ Source/
+│     ├─ Editor/UI/                   # Shadow-map debug and project settings
+│     └─ Engine/
+│        ├─ Component/Light/          # Directional, spot, and point settings
+│        ├─ Component/Movement/       # InterpToMovement
+│        ├─ Profiling/                # Shadow statistics
+│        └─ Render/
+│           ├─ RenderPass/ShadowMapPass.*
+│           ├─ Resource/              # Shadow GPU resources
+│           └─ Shadow/                # Atlas-quadtree implementation
+├─ Scripts/
+├─ GenerateProjectFiles.bat
+├─ DemoBuild.bat
+└─ ReleaseBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- NuGet package restore
+
+### Build Instructions
+
+1. Run `GenerateProjectFiles.bat` if Visual Studio project files need to be generated.
+2. Open `KraftonEngine.sln` in Visual Studio.
+3. Restore NuGet packages.
+4. Build and run `Debug | x64` or `Release | x64`.
+
+Use `DemoBuild.bat` or `ReleaseBuild.bat` to prepare deployable executables and resources.
+
+## Current Status and Limitations
+
+- Targets Windows and DirectX 11.
+- The default atlas size is 4096×4096 per page, with up to four pages each for spot and point lights.
+- A point light consumes six cube-face regions, so it uses more atlas area than a spot light at the same resolution.
+- The atlas is reset and greedily repacked from largest request to smallest every frame; it does not use persistent allocation.
+- When the page limit is exceeded, all requested resolutions are reduced, so individual shadow quality can fall in scenes with many lights.
+- The final integration of directional CSM/VSM resources, selected-light debugging, and multiple atlas pages also includes work by other team members.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [shimwoojin/Jungle_Week8_Team2](https://github.com/shimwoojin/Jungle_Week8_Team2).
+- The previous private-repository snapshot differed from the original `main` in only `KraftonEngine/Settings/Editor.ini` among 648 source blobs; neither repository had a root README.
+- The 57 commits attributed to Rocketstein during Week 8 include merges, checkpoints, and squashed team changes. Contributions were therefore identified by reviewing commit messages, changed files, and the final code together.
+- Directional CSM and the initial point-shadow implementation were written by other team members; they are listed under project features but not claimed as Rocketstein's individual contributions.
+
+---
+
+## 한국어
+
 # Week 8 — Krafton Engine: Shadow Mapping
 
 > DirectX 11 기반 커스텀 엔진에 Directional CSM과 Spot / Point Light Shadow Atlas를 구축한 프로젝트입니다.  

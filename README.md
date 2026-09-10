@@ -1,3 +1,45 @@
+> **Languages:** English · [한국어](#한국어)
+
+# GTL Engine — W01–W14
+
+This is a source-focused portfolio that brings together the weekly Game Tech Lab projects in a single repository. Each directory was exported independently from a snapshot of the corresponding private repository's `main` branch; the original Git histories were not combined.
+
+| Week | Project |
+| --- | --- |
+| W01 | [W01](./W01/) |
+| W02 | [W02](./W02/) |
+| W03 | [W03](./W03/) |
+| W04 | [W04](./W04/) |
+| W05 | [W05](./W05/) |
+| W06 | [W06](./W06/) |
+| W07 | [W07](./W07/) |
+| W08 | [W08](./W08/) |
+| W09 | [W09](./W09/) |
+| W10 | [W10](./W10/) |
+| W11 | [W11](./W11/) |
+| W12 | [W12](./W12/) |
+| W13 | [W13](./W13/) |
+| W14 | [W14](./W14/) |
+
+## Public Repository Policy
+
+- The repository primarily preserves C/C++, HLSL, Lua, build configuration, and documentation files.
+- Fonts, meshes, textures, materials, images, audio, scenes, and packaged assets have been excluded.
+- Executables, libraries, symbol files, caches, generated files, and package-restore outputs have been excluded.
+- Third-party source code and headers are included only where redistribution terms were verified, together with the applicable licence notices.
+- Commercial or restricted SDKs and compiled third-party DLL/LIB files remain excluded.
+- Externally authored source files carrying an explicit `All Rights Reserved` notice, where redistribution rights could not be verified, have been excluded.
+
+As a result, this public snapshot may not build or run immediately on its own. See [DEPENDENCIES.md](./DEPENDENCIES.md) for required dependencies and the scope of omitted files, and [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for notices covering included third-party code.
+
+## Licence
+
+No repository-wide licence has currently been granted. Where an individual week's directory contains its own `LICENSE`, only that licence's scope and terms apply. This repository grants no rights to excluded third-party code or assets.
+
+---
+
+## 한국어
+
 # GTL Engine — W01–W14
 
 Game Tech Lab 주차별 프로젝트를 하나의 저장소에서 살펴볼 수 있도록 정리한 소스 중심 포트폴리오입니다. 각 폴더는 해당 비공개 저장소의 `main` 브랜치 스냅샷에서 독립적으로 내보냈으며, 원본 Git 이력은 합치지 않았습니다.

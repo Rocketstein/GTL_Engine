@@ -1,3 +1,183 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 11 — Krafton Engine: Property Reflection
+
+> An Unreal-style property-reflection project that generates C++ member metadata at build time and lets the editor and serialisation systems share the same schema.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original collaborative project](https://github.com/keonwookang0914/Jungle_Week11_Team4).
+
+## Project Overview
+
+Building on the previous DirectX 11 engine and editor, we replaced per-class, hand-written property UI and persistence code with a shared metadata layer. When `UCLASS`, `USTRUCT`, `UENUM`, and `UPROPERTY` are declared in headers, a Python code generator produces registration code consumed at runtime by `UClass`, `UScriptStruct`, `UEnum`, and a polymorphic `FProperty` hierarchy.
+
+Week 11 was not simply an exercise in adding macros. Its core achievement was a unified data path from **C++ declaration → code generation → runtime registration → editor editing → JSON save/restore**.
+
+- **Development period:** 14–20 May 2026
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, HLSL, Dear ImGui, Python code generation, JSON
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- Header code generation based on `UCLASS`, `USTRUCT`, `UENUM`, and `UPROPERTY`
+- Static registration and name-based lookup of class, struct, and enum metadata
+- A polymorphic `FProperty` hierarchy separating values from metadata
+- Boolean, numeric, string, vector, enum, struct, array, and asset-reference properties
+- Enumeration of editable and serialisable properties across inheritance hierarchies
+- `DisplayName`, `Category`, ranges, and edit/transient flags
+- Automatic type-specific ImGui widgets in the Property panel
+- JSON scene save/restore using the same property schema
+- A `UObject → UField → UStruct → UClass` metadata-object hierarchy, plus `UEnum`
+- Integration with team-level Week 11 features including skeletal animation, animation notifies, and IK
+
+## My Contributions
+
+### 1. Property-Reflection Foundation and Code-Generation Pipeline
+
+- Improved `GenerateProjectFiles.py` so it automatically discovers the existing project structure and includes generated sources in the build
+- Built a pipeline that parses reflection markers in headers and emits `.generated.h` and `.gen.cpp` files
+- Implemented class, struct, and enum registries, property-type classification, and static registrar generation
+- Configured `GENERATED_BODY` to expose `StaticClass`, `StaticStruct`, parent-type information, and registrar access
+- Propagated `DisplayName`, `Category`, Min/Max/Speed values, and property flags into generated code
+
+Representative commits: [`b306f657`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/b306f657d7999f8ec58d87ed6a21be8693040d2d), [`20e1b79c`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/20e1b79ce696ce70dfcf272fbe6e4b8727ccdc11), [`ad1a23b9`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/ad1a23b9d047bfa2d8287517c332b39e1932b494)
+
+### 2. Polymorphic `FProperty` and Schema/Instance Separation
+
+- Replaced the original single `FProperty`, which copied a value pointer on each access, with a hierarchy of type-specific property classes
+- Redesigned `FProperty` to store only name, flags, offset, and type metadata rather than owning a value
+- Used `ContainerPtrToValuePtr` to calculate the actual address of an object, struct, or array element, allowing schemas to be reused across instances
+- Removed object slicing caused by copying and separated type-specific `Serialize` and `Deserialize` behaviour through virtual functions
+- Clarified ownership of `FArrayProperty`'s inner property and its recursive access model
+
+Representative commits: [`3375dd14`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/3375dd14), [`6ee18304`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/6ee18304), [`60d02c8d`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/60d02c8d69a42be1612169ffce19353e574b9246), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
+
+### 3. Editor and Serialisation Integration, with Existing-Component Migration
+
+- Connected `EditorPropertyWidget` to enumerate editable properties on an object and draw type-specific ImGui widgets
+- Passed containers recursively through nested arrays and structs so they use the same property-UI path
+- Implemented `FArrayAccessor`, array serialisation/deserialisation, `FixedSize` handling, and propagation of array-element changes
+- Collected properties from base to derived classes and added `UPROPERTY_HIDE` for hiding inherited properties
+- Migrated hand-written property code in Actors and light, billboard, scene, mesh, and movement Components to macro-based registration
+- Unified scene persistence so only non-transient properties are processed through the shared `Serialize`/`Deserialize` path
+
+Representative commits: [`60d02c8d`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/60d02c8d69a42be1612169ffce19353e574b9246), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
+
+### 4. `UField`, `UStruct`, and `UEnum` Metadata-Object Hierarchy
+
+- Organised reflection types into the `UObject → UField → UStruct → UClass` inheritance hierarchy
+- Added SuperStruct, size, child-property storage, inheritance traversal, and name lookup to `UStruct`
+- Implemented enum name-to-integer tables, underlying size, C++ representation, and bidirectional lookup in `UEnum`
+- Extended code generation to register ordinary enums, `enum class` types, and child properties of `USTRUCT`s
+- Connected deferred registration so static metadata objects are safely registered after the Object Array is initialised
+- Inherited cast flags across core metadata types, establishing a fast path for common `IsA` checks
+
+Representative commits: [`d43e6524`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/d43e652438ac7f6f7deffc65139c23b140f9473b), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
+
+### 5. Property Lifetime Policies and Follow-up Reflection/GC Design
+
+- Added `DuplicateTransient` and `NonPIEDuplicateTransient` flags to distinguish values that must be reset during duplication
+- Added foundational types and documentation for `FField`, `FFieldClass`, and `FFieldVariant` as an experiment in lightweight metadata fields
+- Documented the implementation order and dependencies leading to object/class properties, `FField` iteration, CDOs, mark-and-sweep garbage collection, and `UFunction`
+- Updated the property-reflection documentation and the behaviour and constraints of specialised property types to match the final code
+
+Representative commits: [`f6784016`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/f67840161ebb5e9c0fc1795f001e17e1ab916c1c), [`bb179ed5`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/bb179ed5059e930a5d5bc824a9488f42c5ca01d8), [`aaaeeb43`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/aaaeeb43518fe7561804f0d0faf49cc407f8b749), [`8c1d5e1b`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/8c1d5e1b9496c1293e5aad41855ca12ef0626678), [`a9702b62`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/a9702b6251019f9f4e80df1424758eff2e768608)
+
+## Reflection Data Flow
+
+```text
+C++ Header
+UCLASS / USTRUCT / UENUM / UPROPERTY
+                    │
+                    ▼
+          Scripts/GenerateCode.py
+             │                 │
+             ▼                 ▼
+    *.generated.h          *.gen.cpp
+  Generated Body       Metadata / Registrar
+             └───────────────┬─┘
+                             ▼
+              UClass / UScriptStruct / UEnum
+                             │
+                        FProperty Schema
+                 Name · Flag · Offset · Type
+                       ┌─────┴─────┐
+                       ▼           ▼
+            EditorPropertyWidget  SceneSaveManager
+              ImGui Editing        JSON Save / Restore
+```
+
+`FProperty` does not retain an instance address. The editor and serialisation systems receive the same schema and access the actual value through `Container + Offset`, allowing type-specific behaviour to be reused without duplicate implementations.
+
+## Project Structure
+
+```text
+.
+├─ Docs/
+│  ├─ PropertyReflectionSystem.md    # Current reflection architecture
+│  ├─ SpecialPropertyTypes.md        # Enum, struct, array, reference types
+│  └─ GC Plan.md                     # Follow-up FField, CDO, GC, UFunction plan
+├─ KraftonEngine/
+│  ├─ Source/
+│  │  ├─ Engine/Core/Property/       # FProperty hierarchy and FField experiments
+│  │  ├─ Engine/Core/UObject/        # Weak and soft object pointers
+│  │  ├─ Engine/Object/              # UObject, UField, UStruct, UClass, UEnum
+│  │  ├─ Engine/Serialization/       # Property-based scene persistence
+│  │  └─ Editor/UI/                  # Property panel
+│  ├─ Intermediate/Generated/        # Generated headers and source files
+│  ├─ Shaders/
+│  └─ ThirdParty/
+├─ Scripts/
+│  ├─ GenerateCode.py                # Reflection code generation
+│  └─ GenerateProjectFiles.py        # Visual Studio project generation
+├─ KraftonEngine.sln
+├─ GenerateProjectFiles.bat
+├─ GameBuild.bat
+└─ ReleaseBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- Python runtime included under `Scripts/python`
+
+### Development Build
+
+1. Run `GenerateProjectFiles.bat` after adding or moving files if the project needs to be regenerated.
+2. Open `KraftonEngine.sln` in Visual Studio.
+3. Build `Debug | x64` or `Release | x64`.
+4. The pre-build step runs `GenerateCode.py` to update generated reflection files.
+
+### Runtime Builds
+
+- `GameBuild.bat`: Builds the `Game | x64` configuration
+- `ReleaseBuild.bat`: Builds the `Release | x64` configuration
+
+## Current Status and Limitations
+
+- Targets Windows and DirectX 11.
+- Code-generated property registration for `UClass`, `UScriptStruct`, and `UEnum` is functional.
+- The editor UI and JSON scene persistence use the same `FProperty` schema.
+- General hard-reference `UObject*` and `UClass*` properties are not yet complete; some reference types use dedicated property classes.
+- `FField`, `FFieldClass`, and `FFieldVariant` remain foundational or exploratory and are not fully integrated with the current `FProperty` and `UStruct::ChildProperties` paths.
+- CDOs, mark-and-sweep GC, `TFieldIterator`, and C++ call-by-name `UFunction` support remain planned follow-up work.
+- A parsing and Lua-binding generation path exists for `UFUNCTION`, but the engine does not yet provide a general-purpose function-metadata system.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [keonwookang0914/Jungle_Week11_Team4](https://github.com/keonwookang0914/Jungle_Week11_Team4).
+- The original repository was forked from the Week 10 project, so history before 14 May 2026 was excluded from Week 11 individual-contribution accounting.
+- The 29 commits attributed to Rocketstein during the core development period include merges and reverts; the list above therefore presents representative commits identified from messages, changed files, and the final code.
+- The final implementation was cross-checked against the design documents to distinguish completed work from follow-up plans.
+
+---
+
+## 한국어
+
 # Week 11 — Krafton Engine: Property Reflection
 
 > C++ 멤버의 메타데이터를 빌드 타임에 생성하고, 에디터와 직렬화가 같은 스키마를 사용하도록 구축한 Unreal 스타일 프로퍼티 리플렉션 프로젝트입니다.  

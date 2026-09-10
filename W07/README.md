@@ -1,3 +1,214 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 7 — Nips Engine
+
+> A project implementing a unified lighting shader, normal mapping, and GPU light culling in a DirectX 11 editor engine.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original collaborative project](https://github.com/Rocketstein/Nips_W7).
+
+## Project Overview
+
+Building on the Week 6 editor and multipass renderer, we extended the forward-rendering architecture to process many lights efficiently. The project introduced shader permutations for material features and lighting models, then integrated tiled and clustered light culling using a depth prepass and compute shaders.
+
+- **Development period:** 16–22 April 2026
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, HLSL, compute shaders, Dear ImGui, JSON
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- Up to four perspective or orthographic editor viewports
+- Ambient, directional, point, and spot lights
+- Gouraud, Lambert, Blinn–Phong, and unlit lighting models
+- Shader permutations combining diffuse, normal, and specular maps with cull modes
+- OBJ tangent generation and TBN-based normal mapping
+- 16×16 tiled light culling using a depth prepass
+- Clustered light culling with 24 logarithmic depth slices
+- Per-viewport `None`, `Tiled`, and `Clustered` culling-mode selection
+- Heatmap view for inspecting light density by tile or cluster
+- Decals, height fog, FXAA, selection outlines, and editor overlays
+- Scene editing and serialisation, picking, gizmos, and static-mesh/material workflows
+
+## My Contributions
+
+### 1. Unified UberLit Shader and Runtime Lighting-Model Switching
+
+- Extended `ResourceManager` to compile and cache shaders by preprocessor macros and permutation keys
+- Consolidated ambient, directional, point, and spot-light calculations in `Lighting.hlsl` and integrated them into `UberLit.hlsl`
+- Separated vertex- and pixel-lighting paths for Gouraud, Lambert, and Blinn–Phong models, including per-light attenuation and spotlight-cone calculations
+- Connected material binding to selection of the active lighting-model permutation through the Renderer → Render Pass → Material path
+- Added runtime lighting-model selection to each viewport's ImGui menu
+
+Representative commits: [`e3138041`](https://github.com/Rocketstein/Nips_W7/commit/e31380418af9e61a277f55a0ca89229e109df477), [`61db3da1`](https://github.com/Rocketstein/Nips_W7/commit/61db3da1b39efd9eb5cde7f2e832b390de50dd40), [`9568e430`](https://github.com/Rocketstein/Nips_W7/commit/9568e4305c25d953addc548e3825975aed74137f), [`5b3628be`](https://github.com/Rocketstein/Nips_W7/commit/5b3628bee712b7965c83d8665fbff7d3d32361c8)
+
+### 2. Tangent Space and the Normal-Mapping Pipeline
+
+- Calculated tangents and bitangents from OBJ triangle position and UV deltas, accumulating them per vertex
+- Generated `FNormalVertex` tangents using Gram–Schmidt orthogonalisation and a handedness sign
+- Propagated tangent data through vertex input, GPU buffers, and binary serialisation so normal mapping remained available for cached meshes
+- Fixed case-sensitivity and option parsing for MTL `map_Bump`, then connected normal textures to material parameters
+- Implemented a pixel-shader path that transforms tangent-space normals into world space with a TBN matrix
+- Fixed a shader-compilation failure in the Gouraud + Normal Map combination caused by an unused pixel tangent
+
+Representative commits: [`92dc9076`](https://github.com/Rocketstein/Nips_W7/commit/92dc90760b08cfc8ba4439f6fe8fe5b752c2867e), [`fc946f42`](https://github.com/Rocketstein/Nips_W7/commit/fc946f4297efdd746887e390833d277ad3006317), [`44eb564e`](https://github.com/Rocketstein/Nips_W7/commit/44eb564ed49d435c68ca419d6344e3483f55eea6), [`62e62da8`](https://github.com/Rocketstein/Nips_W7/commit/62e62da87395284c86407e6463f7502998d2cca6)
+
+### 3. Depth Prepass and Tiled Light Culling
+
+- Added a `DepthPrePass` before the opaque pass and configured the depth texture for shader-resource access
+- Implemented a Direct3D 11 compute-shader wrapper with loading, binding, and unbinding paths
+- Divided the screen into 16×16-pixel tiles and used each tile's minimum and maximum depth to reject non-intersecting light spheres
+- Wrote selected light indices and per-tile `offset / count` data into UAV Structured Buffers
+- Inserted `LightCullingPass` into the rendering pipeline and consumed its output SRVs in the `UberLit` pixel shader
+- Fixed SRV/UAV read-write conflicts and buffer-sizing issues between compute and pixel shaders
+
+Representative commits: [`ce555b49`](https://github.com/Rocketstein/Nips_W7/commit/ce555b4962d64f5911f065add31bcdc5bead68e3), [`a6d717ab`](https://github.com/Rocketstein/Nips_W7/commit/a6d717abff3d6d27fdb0d0caac4c2a88a49a6f39), [`c397e7ff`](https://github.com/Rocketstein/Nips_W7/commit/c397e7ffd127f4c88beee904db86f6f5b68467cc), [`18ebfd93`](https://github.com/Rocketstein/Nips_W7/commit/18ebfd937cdb2a9fadae1967a8458aad39c4a6d2), [`7f7e263c`](https://github.com/Rocketstein/Nips_W7/commit/7f7e263cd76bb0f2fce31ac07a356fd0145b0d72), [`9d44f10c`](https://github.com/Rocketstein/Nips_W7/commit/9d44f10c1ab3a7d89ed7ee0b0c2235cc684c7638)
+
+### 4. Clustered Light Culling and Culling-Quality Improvements
+
+- Extended 2D tiles into 3D clusters using 24 logarithmic depth slices
+- Added per-viewport `None`, `Tiled`, and `Clustered` modes and selected the matching compute and UberLit permutations
+- Added a heatmap view that colours clusters by light count for real-time inspection
+- Corrected orthographic-view errors by using different depth-reconstruction paths for perspective and orthographic projections
+- Ranked candidate lights beyond the 128-light cluster limit by colour magnitude, intensity, radius, and camera distance
+- Reduced light flickering caused by parallel collection order by using deterministic priority selection
+
+Representative commits: [`40d799ed`](https://github.com/Rocketstein/Nips_W7/commit/40d799ed7b6fd05e7679f5de519f0a7ebeb5f03f), [`edfbaf27`](https://github.com/Rocketstein/Nips_W7/commit/edfbaf27a82bd1c5a026bf9857e8c2b7a78fdccf), [`37d13afe`](https://github.com/Rocketstein/Nips_W7/commit/37d13afe27bae8c832ecaad11da91ef72cfb4155)
+
+### 5. Decal Integration and Rendering Stabilisation
+
+- Analysed and fixed incorrect background overwrites caused by simple draw order and alpha handling when multiple decals overlapped
+- Uploaded per-decal inverse world matrices, tints, and texture indices through a Structured Buffer
+- Combined decal textures in a `Texture2DArray` and performed volume tests and projection in one shader path
+- Removed duplicate decal commands and consolidated shared light/decal constants into `UberConstants`
+- Fixed constant-buffer packing, SRV register collisions, and wireframe rasteriser-state leakage
+- Corrected shader and GPU-resource lifetime issues in `ResourceManager` and fixed wireframe output problems
+
+Representative commits: [`2ddd02a1`](https://github.com/Rocketstein/Nips_W7/commit/2ddd02a110b59a111c4b65e467860e4b79bb9eac), [`d7cfb31b`](https://github.com/Rocketstein/Nips_W7/commit/d7cfb31b2502ae26984219cc613893cb7b75c9cd), [`2b67b4cb`](https://github.com/Rocketstein/Nips_W7/commit/2b67b4cb6ec4040fbb5e888aaed4bfdab49ca5db), [`f434c33a`](https://github.com/Rocketstein/Nips_W7/commit/f434c33a71319e8c06c137fe3918d78181caffa9), [`53252e98`](https://github.com/Rocketstein/Nips_W7/commit/53252e98332c83855e37aaf6872d7758c0924389), [`690240ff`](https://github.com/Rocketstein/Nips_W7/commit/690240ff93deae116c63c2e27c68e312a6b884b7)
+
+## Rendering Architecture
+
+Each editor viewport uses its own `FSceneView` and render-target set. `FEditorRenderPipeline` collects render commands from the world before passing them to `FRenderPipeline`.
+
+```text
+World / Components
+        │
+        ▼
+FRenderCollector ── Frustum Culling
+        │
+        ▼
+FRenderBus ── View / Projection / Light / Decal / View Mode
+        │
+        ▼
+Depth Prepass
+        │
+        ▼
+Light Culling Compute Pass ── None / Tiled / Clustered
+        │
+        ▼
+Opaque (UberLit) → Light → Fog → FXAA
+        │
+        ▼
+Font / SubUV / Translucent / Selection / Grid / Gizmo / Outline
+```
+
+### Shader Permutations
+
+`FShaderHelper` combines the following features as bit flags and generates the required HLSL preprocessor macros:
+
+- **Lighting model:** Unlit, Gouraud, Lambert, Blinn–Phong, Heatmap
+- **Material features:** Diffuse Map, Normal Map, Specular Map, Emissive Map, Alpha Mask
+- **Light culling:** None, Tiled, Clustered
+
+Rather than compiling every theoretical combination, the engine creates and caches only valid combinations registered by the renderer at startup.
+
+### Light Culling
+
+- **Tile size:** 16×16 pixels
+- **Depth slices:** 24
+- **Maximum lights per tile/cluster:** 128
+- **Scratch candidates:** 512
+- **Default mode:** Clustered
+
+Tiled mode uses each tile's measured minimum and maximum depth. Clustered mode divides the near-to-far range into logarithmic slices. With culling disabled, the shader iterates over all point and spot lights.
+
+## Editor Workflow
+
+1. Place ambient, directional, point, or spot lights in the editor.
+2. Adjust colour, intensity, radius, falloff, and cone angle in the Property panel.
+3. Compare Gouraud, Lambert, Blinn–Phong, and Unlit through the viewport **View Mode** menu.
+4. Switch between Clustered, Tiled, and None under **Light Culling**.
+5. Inspect per-tile or per-cluster light density using the **Heatmap** view.
+6. Apply a material with a normal map to validate tangent-space lighting.
+
+## Project Structure
+
+```text
+.
+├─ NipsEngine.sln
+├─ NipsEngine/
+│  ├─ Asset/                         # Meshes, materials, textures, scenes
+│  ├─ Settings/                      # Editor settings
+│  ├─ Shaders/
+│  │  ├─ Common.hlsl
+│  │  ├─ Lighting.hlsl
+│  │  ├─ UberLit.hlsl
+│  │  ├─ DepthPrepass.hlsl
+│  │  ├─ LightCullingCS.hlsl
+│  │  └─ Multipass/                  # Lighting, fog, FXAA
+│  └─ Source/
+│     ├─ Editor/                     # Editor, viewport, UI, render pipeline
+│     ├─ Engine/
+│     │  ├─ Component/PostProcess/Light/
+│     │  ├─ Render/Renderer/RenderFlow/
+│     │  ├─ Render/Resource/
+│     │  └─ Runtime/
+│     └─ Misc/ObjViewer/             # OBJ viewer from an earlier week
+├─ Scripts/
+└─ GenerateProjectFiles.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143
+- Windows 10 SDK
+- DirectX 11-capable GPU
+
+### Build Instructions
+
+1. Open `NipsEngine.sln` in Visual Studio.
+2. Select `Debug | x64` or `Release | x64`.
+3. Restore the NuGet package `directxtk_desktop_win10`.
+4. Build and run the solution.
+
+Run the following script if the project files need to be regenerated:
+
+```powershell
+.\GenerateProjectFiles.bat
+```
+
+The `ObjViewer | x64` configuration remains available, but Week 7's main work is the editor lighting and light-culling path.
+
+## Current Status and Limitations
+
+- Targets Windows and DirectX 11.
+- Light-culling tile size, slice count, and maximum light count are currently fixed constants.
+- When a cluster has more than 128 candidates, only the highest-priority lights are used.
+- The standalone `DecalRenderPass` is disabled in the current `main` pipeline; decal data is supplied through the unified shader path.
+- `FEATURE_GUIDE.md` includes Week 6 feature documentation, so Week 7 changes should be verified against this README and the commit history.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [Rocketstein/Nips_W7](https://github.com/Rocketstein/Nips_W7).
+- Individual contributions were identified from author metadata, commit messages, and changed files following the Week 7 starting commit on 16 April 2026.
+- This document distinguishes inherited editor, decal, height-fog, and FXAA functionality from the new Week 7 lighting and culling work.
+
+---
+
+## 한국어
+
 # Week 7 — Nips Engine
 
 > DirectX 11 기반 편집기 엔진에 통합 라이팅 셰이더, 노멀 매핑, GPU Light Culling을 구현한 프로젝트입니다.  

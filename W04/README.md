@@ -1,3 +1,547 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 4 — CO-PASS Engine
+
+![CO-PASS Logo](Editor/Resources/Tool/copass.png)
+
+> A custom-engine project featuring a multi-viewport editor and OBJ viewer built with Win32, Direct3D 11, and ImGui.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original team project](https://github.com/DKael/KraftonJungle_Week4_Team8).
+
+CO-PASS Engine is a custom editor and rendering-engine project built with **Win32, Direct3D 11, and ImGui**. It centres on two areas:
+
+- **Editor-oriented workflows**
+  - Editing through an Outliner, Details panel, Content Browser, Console, and Control Panel
+- **Real-time rendering and asset-pipeline experiments**
+  - Meshes, sprites, billboard text, outlines, picking, asset loading, and scene serialisation
+
+Rather than implementing a full gameplay framework, this repository focuses on **editor development**, **renderer architecture**, and **scene/asset workflows**.
+
+## 1. Project Overview
+
+CO-PASS Engine is an educational engine project in which the following systems were implemented directly.
+
+- **Development period:** 27 March–2 April 2026
+- **Development environment:** Windows, Visual Studio 2022, C++17
+- **Key technologies:** Direct3D 11, HLSL, Dear ImGui, JSON, Win32 API
+- **Project type:** Team project / portfolio focused on individual contributions
+
+- Win32-based editor application
+- Direct3D 11 rendering pipeline
+- ImGui docking-based editor UI
+- Panel system and menu registry
+- Scene saving and loading using JSON-based `.Scene` files
+- Resource loading through an AssetManager and specialised loaders
+- Content Browser, drag-and-drop, and Details-panel integration
+- Six multi-viewport layouts, from Single to Four Way, with draggable splitters
+- Per-viewport camera, input, and rendering contexts with shared selection state
+- Standalone OBJ viewer with an orbit camera, coordinate-system conversion, scaling, and cull-mode controls
+- Viewport cameras, selection, gizmos, outlines, and AABB visualisation
+- Sprite, SubUV, and atlas-text rendering
+
+## 2. Key Features
+
+### Editor Features
+
+- **Multi Viewport**
+  - `Single`, `TwoColumn`, `TwoRow`, `ColumnTwoRow`, `TwoRowColumn`, and `FourWay` layouts
+  - Draggable splitters that preserve their proportions when the window is resized
+  - Independent camera and input contexts per viewport, with a shared selection controller
+- **Outliner**
+  - Displays Actors in the current scene
+  - Supports Actor creation and selection
+- **Details**
+  - Edits properties of the selected Actor or Component
+  - Supports transforms and a manual per-component property system
+- **Content Browser**
+  - Indexes the `Editor/Content` directory
+  - Provides a folder tree, file list, search, filtering, and drag-and-drop
+- **Console**
+  - Controls scenes, creates and deletes Actors, and changes camera, grid, and view-mode settings
+- **Control Panel**
+  - Camera transform, projection, and FOV
+  - Viewport layout and orientation
+  - View mode, show flags, grid spacing, and navigation speed
+- **Shortcuts / About**
+  - Shortcut reference and project-information pop-ups
+- **OBJ Viewer**
+  - Loads and renders OBJ static meshes through a separate engine loop
+  - Orbit camera, six-direction camera alignment, and Slerp transitions
+  - Y-up to Z-up coordinate-system conversion, view-mode controls, and cull-mode controls
+  - Per-axis and absolute scaling, with automatic correction for extremely large or small models
+
+### Rendering Features
+
+- Mesh rendering
+- Sprite rendering
+- Billboard-text rendering
+- Selection outlines
+- Object-ID-based picking
+- Grid, world-axis, gizmo, and AABB overlays
+- `Lit`, `Unlit`, and `Wireframe` view modes
+- Editor and scene show-flag toggles
+
+### Data and Workflow Features
+
+- `.Scene` save/load support with perspective-camera state restoration
+- Scene asset paths stored using `/Game/...` virtual paths
+- Texture, font, and sprite-atlas loading through the AssetManager
+- Direct entry of asset paths in the Details panel
+- Drag-and-drop of textures, fonts, and atlases from the Content Browser into the Details panel
+
+## 3. My Contributions
+
+### 1. Multi-Viewport Layouts and a Slate-Style Window System
+
+- Implemented six viewport layouts, covering one-, two-, three-, and four-way splits, around `FWindowOverlayManager`
+- Moved the reusable `SWidget` → `SWindow` → `SSplitter` hierarchy into the engine's Core Runtime
+- Implemented splitter hit testing and drag input while preserving horizontal and vertical split ratios across window resizes
+- Added `D3D11WidgetRenderer` and widget render data to draw splitter boundaries and visualise layout interaction state
+- Connected the layouts to the ImGui Control Panel, dynamically creating and destroying the viewport panels required by each configuration
+
+Representative commits: [`538cb969`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/538cb969787e166598077851a9f6d299b2750ec8), [`75b1d8c7`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/75b1d8c7d836c6f77a360d1860e3f5282ae15d00), [`92be2f17`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/92be2f1742d791e39b4693b186ecc6e921db0fd5), [`19d89d60`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/19d89d6022d3350e2283c9bf5648b20997b6184b), [`73b6df79`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/73b6df797002cb6ab6cf0f6cbd322cc21af11071)
+
+### 2. Multi-Viewport Input, Selection, and Rendering Stabilisation
+
+- Reworked the editor loop so every active viewport ticks and renders with its own camera and render context
+- Used each secondary viewport's camera origin for picking and gizmo movement, fixing screen/world coordinate mismatches
+- Shared one `FViewportSelectionController` between viewports to prevent duplicate selections and deletion conflicts
+- Improved the rendering path by collecting view-independent scene data once per frame and reusing it across panels
+- Propagated newly loaded scenes and the most recently focused panel to the Overlay Manager, Console, and Global Editor Context
+
+Representative commits: [`74504602`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/745046028fcd003fbfe2b6837b6a64683b4de2ea), [`931280a8`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/931280a8a5fed07746d4a198a719200ca76f5071), [`1b7ae7df`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/1b7ae7df64b1da4c0d2bef21fdfbcefc9de6ca08), [`0c0b3150`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/0c0b31508be6e1b2be751f8a1a44f3e5299edc36), [`3dfcdf38`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/3dfcdf38d829ecb13e270327f71c655c2eade31a), [`e3c910fb`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/e3c910fbe926f9ac68aff7da4bb12e36742670a8)
+
+### 3. Orthographic Views and Camera-State Serialisation
+
+- Added front, back, left, right, top, and bottom orthographic orientations with movement constraints for secondary viewports
+- Defined default orientations and ortho heights for each layout, allowing the focused view's orientation to be changed in the Control Panel
+- Serialised and restored perspective-camera location, rotation, FOV, and near/far planes in scene JSON
+- Reset the navigation controller's target location after scene loading, preventing interpolation back to the previous camera position
+- Fixed UUID, primitive, and sprite visibility settings that were not being applied to the actual scene show flags
+
+Representative commits: [`9083e89c`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/9083e89c4aa8bf140128b72064346c2345378782), [`30d23293`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/30d2329305bb5445903fdad99383d2d4246acac4), [`5d9bb3c2`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/5d9bb3c2e1ac776af3cd0e37508e16878641ea99), [`a72b3962`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/a72b396262d9711b1afeee93abc0bcd404cc1be2)
+
+### 4. Standalone OBJ Viewer and Renderer Integration
+
+- Added `FObjViewerEngineLoop`, enabled by the `IS_OBJ_VIEWER` configuration, to provide a model-inspection path independent of the editor
+- Implemented OBJ static-mesh loading, automatic camera fitting, mouse-based orbit/pan/zoom controls, and an FPS display
+- Separated input, camera, and UI responsibilities into `FOrbitalCameraController` and `FViewerImGui`
+- Stabilised model and material-texture loading by fixing file-dialog and Texture Loader initialisation errors
+- Propagated Lit/Unlit/Wireframe view modes and Back/Front/None cull modes from the viewer to the renderer
+
+Representative commits: [`595e8f24`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/595e8f24defff8a59bd432124be087b81c15858f), [`148079b7`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/148079b78075c525d4be429708abfa1ab20255f1), [`f97c85b8`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/f97c85b8a5ffb39b052c063a72225d6926c9c4ce), [`f27d441e`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/f27d441e2ceabbc9bddd15c7a7488a059849f720), [`ef6b4027`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/ef6b40279afd5825c6896e130a7ef735e033480d)
+
+### 5. OBJ Viewer Model-Inspection UX
+
+- Connected six-direction camera-alignment controls to quaternion Slerp for smooth viewpoint transitions
+- Added a change-of-basis option to convert Y-up models into the engine's Z-up coordinate system
+- Added per-axis relative scaling and absolute scaling, with automatic normalisation for models of extreme size
+- Fixed an interaction bug that reset absolute scale after axis alignment or scale dragging
+- Added OBJ sample assets for validating complex models with multiple materials
+
+Representative commits: [`c75c2084`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/c75c208432a14d6ecb2f76cb47fd85cd9413044c), [`0b0f22f3`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/0b0f22f35db4f057d3232ea4abaed8f41d1bddb1), [`db179cfd`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/db179cfd17433edbf2cc47fd5a527769a713e4c8), [`19bb401b`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/19bb401b62fefb59d0a39eaeb44ef56a4562a622), [`279ff109`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/279ff109208458a72b60dd4afe1830d2fb71b067), [`83ad228b`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/83ad228b9f6462ab75a2b2b34df612ba9820344c), [`c61466a1`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/c61466a193f61cc2fed659ae9013b0c0869e4a05)
+
+## 4. Technology Stack
+
+- **Language:** C++
+- **Platform:** Windows
+- **Graphics API:** Direct3D 11
+- **Windowing/Input:** Win32 API
+- **Editor UI:** Dear ImGui
+- **Data:** JSON
+- **Project system:** Visual Studio Solution
+
+Third-party components:
+
+- Dear ImGui
+- nlohmann/json
+- DirectXTK Desktop Win10 NuGet package
+
+## 5. Project Structure
+
+```text
+.
+├─ Editor/
+│  ├─ Content/                 # Content root used by the editor at runtime
+│  ├─ Resources/               # Icons, logo, and .rc resources
+│  ├─ Saved/Config/            # editor.ini
+│  └─ Source/
+│     ├─ Camera/
+│     ├─ Chrome/
+│     ├─ Content/
+│     ├─ Editor/
+│     ├─ Input/
+│     ├─ Launch/
+│     ├─ Menu/
+│     ├─ Panel/
+│     ├─ Viewport/
+│     ├─ Viewer/               # OBJ viewer, orbit camera, viewer ImGui
+│     └─ ThirdParty/imgui/
+├─ Engine/
+│  ├─ Resources/Mesh/          # Built-in primitive-mesh data
+│  └─ Source/
+│     ├─ ApplicationCore/
+│     ├─ Asset/
+│     ├─ Core/
+│     ├─ CoreUObject/
+│     ├─ Engine/
+│     ├─ Renderer/
+│     └─ SceneIO/
+├─ Docs/
+├─ Scripts/
+└─ Kraftonjungle_Team2.sln
+```
+
+## 6. Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- Desktop development with C++ workload
+- Direct3D 11 runtime support
+
+### Build Instructions
+
+1. Open the repository.
+2. Open `Kraftonjungle_Team2.sln` in Visual Studio.
+3. Select a configuration, typically `Debug | x64`.
+4. Build the solution.
+
+Command-line build:
+
+```powershell
+msbuild .\Kraftonjungle_Team2.sln /p:Configuration=Debug /p:Platform=x64 /t:Build /m:1 /nologo /v:minimal
+```
+
+To regenerate project files:
+
+```powershell
+.\GenerateProjectFiles.bat
+```
+
+### Runtime Root and Content Paths
+
+At launch, the application root is initialised relative to the `Editor` directory. The default content root is therefore:
+
+- `Editor/Content`
+
+For example:
+
+- Scenes: `Editor/Content/Scenes`
+- Fonts: `Editor/Content/Font`
+- Textures: `Editor/Content/Texture`
+
+Editor settings are stored in:
+
+- `Editor/Saved/Config/editor.ini`
+
+## 7. Editor Workflow
+
+### Main Panels
+
+- **Outliner:** Scene Actor list and creation
+- **Details:** Property editing for the selected object
+- **Control Panel:** Camera and view settings
+- **Console:** Command-driven controls
+- **State:** FPS and other runtime information
+- **Content Browser:** Asset browsing
+
+### Typical Workflow
+
+1. Create an Actor in the Outliner.
+2. Select it in the viewport or Outliner.
+3. Edit its transform or Component properties in Details.
+4. Drag a texture, font, or atlas from the Content Browser into Details.
+5. Save the work as a `.Scene` file and reopen it later.
+
+## 8. Shortcuts
+
+The complete shortcut list is available in the editor under **Help > Shortcuts**. Representative controls in the current codebase include:
+
+- `Right Mouse Drag`: Rotate the camera
+- `Middle Mouse Drag`: Pan the camera
+- `Alt + Left Mouse Drag`: Orbit around the selected object
+- `Mouse Wheel`: Zoom the camera or adjust FOV/orthographic settings
+- `W / A / S / D / Q / E`: Move the camera
+- `F`: Focus the camera on the selected object
+- `Left Mouse Click`: Single selection
+- `Ctrl + Click`: Toggle selection / multi-select
+- `Delete`: Delete selected Actors
+- `Space`: Change gizmo type
+
+## 9. Asset System
+
+The CO-PASS Engine asset system separates **reading source files** from **creating engine resources**.
+
+Key files:
+
+- `Engine/Source/Asset/AssetManager.h`
+- `Engine/Source/Asset/AssetLoader.h`
+- `Engine/Source/Asset/TextureLoader.cpp`
+- `Engine/Source/Asset/FontAtlasLoader.cpp`
+- `Engine/Source/Asset/SubUVAtlasLoader.cpp`
+
+### Concepts
+
+- `UAssetManager`
+  - Loader registration
+  - Source-cache management
+  - Loaded-asset cache management
+- `IAssetLoader`
+  - Responsible for loading a particular extension or asset type
+- `UAsset`
+  - Engine asset object that stores a loading result
+- `Resource`
+  - The actual GPU/rendering resource used directly by the renderer
+
+### Supported Asset Types
+
+- `Texture`
+- `Font`
+- `SpriteAtlas`
+
+The code's enum also anticipates meshes, shaders, and materials, but the three types above form the current core implementation.
+
+### Loading Flow
+
+1. A Component stores an `AssetPath`.
+2. `ResolveAssetReferences()` is called.
+3. `UAssetManager::Load()` runs.
+4. A loader reads the file and creates a `UAsset`.
+5. The Component obtains its final `Resource*` from the `UAsset`.
+
+### Source Cache and Asset Cache
+
+The AssetManager separates two caches:
+
+- **Source Cache**
+  - File bytes, file size, modification time, and hash
+- **Loaded Asset Cache**
+  - Reuses final assets using type, path, and build signature as the cache key
+
+This design reduces redundant decoding and reconstruction when the same file is loaded repeatedly.
+
+## 10. Connecting Components to Assets
+
+Components in the current project generally follow this pattern:
+
+- Persistent value: `AssetPath`
+- Runtime value: `Resource*`
+
+Examples:
+
+- `USpriteComponent`
+  - `TexturePath`
+  - `FTextureResource*`
+- `UAtlasTextComponent`
+  - `FontPath`
+  - `FFontResource*`
+- `USubUVComponent`
+  - `SubUVAtlasPath`
+  - `FSubUVAtlasResource*`
+
+Rather than owning the `UAsset` itself, a Component stores a path and resolves it when it needs to acquire the corresponding resource.
+
+## 11. Content Browser
+
+The Content Browser is an **editor-specific index and browser**, not simply an AssetManager UI.
+
+Key files:
+
+- `Editor/Source/Content/EditorContentIndex.h`
+- `Editor/Source/Panel/ContentBrowserPanel.cpp`
+
+Features:
+
+- Recursive scanning of `Editor/Content`
+- `/Game/...` virtual-path generation
+- Folder-tree and file-list views
+- Search within the current folder
+- Search including subdirectories
+- Type filters
+- Drag-and-drop
+
+Recognised item types:
+
+- Scene
+- Texture
+- Font
+- Sprite Atlas
+- Unknown File
+
+## 12. Scene System
+
+Scenes are JSON documents using the `.Scene` extension.
+
+Key files:
+
+- `Engine/Source/SceneIO/SceneSerializer.h`
+- `Engine/Source/SceneIO/SceneSerializer.cpp`
+- `Engine/Source/SceneIO/SceneTypeRegistry.cpp`
+- `Engine/Source/SceneIO/SceneAssetPath.h`
+
+### Features
+
+- Serialises Actor and Component structures
+- Serialises Component hierarchies
+- Serialises each Component using the manual property system
+- Stores `/Game/...` asset paths
+- Restores concrete Actor and Component types through a registry when loading
+- Falls back to `UnknownActor` and `UnknownComponent` for unrecognised types
+
+### Role of Scene Files
+
+- Store editor scene documents
+- Remain separate from ordinary items in the AssetManager's asset cache
+
+## 13. Manual Property System
+
+Instead of a complete reflection system such as Unreal's `UProperty`, each Component explicitly declares which properties should be exposed and persisted.
+
+Key file:
+
+- `Engine/Source/Engine/Component/Core/ComponentProperty.h`
+
+Advantages:
+
+- Shares one definition between the Details UI and scene serialisation
+- Remains extensible without automatic reflection
+- Lets each Component author control its exposure policy directly
+
+Values such as text, texture paths, colours, and animation speeds are therefore reflected in both the Details panel and `.Scene` files through the same system.
+
+## 14. Rendering Pipeline
+
+Key files:
+
+- `Engine/Source/Renderer/RendererModule.cpp`
+- `Engine/Source/Renderer/D3D11/D3D11RHI.cpp`
+- `Engine/Source/Renderer/D3D11/D3D11MeshBatchRenderer.cpp`
+- `Engine/Source/Renderer/D3D11/D3D11SpriteBatchRenderer.cpp`
+- `Engine/Source/Renderer/D3D11/D3D11TextBatchRenderer.cpp`
+- `Engine/Source/Renderer/D3D11/D3D11OutlineRenderer.cpp`
+- `Engine/Source/Renderer/D3D11/D3D11ObjectIdRenderer.cpp`
+
+The current rendering order is approximately:
+
+1. Scene primitive meshes
+2. Selection outlines
+3. Sprites
+4. Billboard text
+5. Gizmos
+6. Grid, axes, AABBs, and other line overlays
+
+Additional features:
+
+- Picking through off-screen Object ID rendering
+- Dedicated selection-outline renderer
+- Selected objects use a distinct colour in wireframe mode
+- Korean glyphs can be rendered through UTF-8 text decoding
+
+## 15. Included Actor and Component Examples
+
+### Actors
+
+- `ACubeActor`
+- `ASphereActor`
+- `AConeActor`
+- `ACylinderActor`
+- `ARingActor`
+- `ATriangleActor`
+- `ASpriteActor`
+- `AAtlasSpriteActor`
+- `AEffectActor`
+- `AFlipbookActor`
+- `ATextActor`
+- `AUnknownActor`
+
+### Components
+
+- Mesh
+  - `UCubeComponent`
+  - `USphereComponent`
+  - `UConeComponent`
+  - `UCylinderComponent`
+  - `URingComponent`
+  - `UTriangleComponent`
+  - `UQuadComponent`
+- Sprite
+  - `USpriteComponent`
+  - `UAtlasComponent`
+  - `USubUVComponent`
+  - `USubUVAnimatedComponent`
+- Text
+  - `UAtlasTextComponent`
+  - `UUUIDComponent`
+- Core
+  - `USceneComponent`
+  - `UPrimitiveComponent`
+  - `UUnknownComponent`
+
+## 16. Console Commands
+
+The Console panel exposes commands for changing editor state.
+
+Examples:
+
+```text
+scene.new
+scene.save
+scene.open "Editor/Content/Scenes/Sample.Scene"
+actor.spawn cube 3
+actor.spawn sphere 2
+actor.delete_selected
+select.clear
+select.focus
+camera.reset
+camera.speed 300
+camera.rot_speed 0.2
+grid.spacing 50
+viewmode wireframe
+show.grid on
+show.outline off
+content.refresh
+content.find font
+```
+
+## 17. Known Limitations and Current Status
+
+As an educational engine/editor project, the current implementation has the following characteristics:
+
+- Targets Windows and D3D11
+- Does not provide a complete reflection system
+- Does not include Undo/Redo
+- Does not include a multithreaded asset pipeline
+- Focuses more on editor and rendering architecture experiments than on a game runtime
+
+It is therefore intended for learning through direct design and implementation rather than as a general-purpose commercial engine.
+
+## 18. Documentation
+
+Additional documentation is stored in `Docs/`.
+
+## 19. Licence
+
+The project code is provided under the **MIT Licence**.
+
+See [LICENSE](LICENSE) for details.
+
+Third-party libraries remain subject to their respective licence terms.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [DKael/KraftonJungle_Week4_Team8](https://github.com/DKael/KraftonJungle_Week4_Team8).
+- The individual contributions documented here were identified by reviewing author metadata, commit messages, and the files changed in the original repository.
+
+---
+
+**CO-PASS Engine**  
+A level editor and rendering sandbox for the CO-PASS project.
+
+---
+
+## 한국어
+
 # Week 4 — CO-PASS Engine
 
 ![CO-PASS Logo](Editor/Resources/Tool/copass.png)

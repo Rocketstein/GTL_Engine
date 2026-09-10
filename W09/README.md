@@ -1,3 +1,191 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 9 — Lunatic Engine
+
+> A three-lane runner built by combining Lua gameplay logic with a custom C++ DirectX 11 engine.
+
+- **Core development period:** 30 April–7 May 2026
+- **Areas of responsibility:** Collision shapes and overlaps, procedural maps and obstacles, the Imposter Gizmo mechanic, Player Camera Manager, and Camera Modifiers
+- **Engine:** C++20, DirectX 11, HLSL, ImGui
+- **Gameplay:** LuaJIT, sol2, coroutines, hot reload
+- **Environment:** Windows, Visual Studio 2022, MSVC v143
+
+## Project Overview
+
+`Lunatic Engine` is a team project that built a playable game runtime on top of the rendering and editor engine developed in previous weeks. The result is a runner in which the player moves between three lanes while navigating procedurally chained chunks, obstacles, items, and a fake editor-gizmo mechanic.
+
+Rather than merely adding isolated engine features, Week 9 connected C++ collision, camera, and map systems to Lua-based player control, game state, and UI feedback, producing a complete Title → Story → Play → Result flow.
+
+## Key Features
+
+- Template-based runtime generation and recycling of map chunks, with three-lane obstacle placement
+- Box, sphere, and capsule shape components with collision tests for every supported pairing
+- C++ and Lua delivery of begin/end overlap and hit events
+- Obstacles such as barriers, pendulums, and wireballs, plus item and Imposter Gizmo mechanics
+- Player Camera Manager, view-target changes, camera shake, fade, and letterboxing
+- LuaJIT script components, coroutines, hot reload, and engine API bindings
+- Title, Story, Playground, and Result scenes with HUD, dialogue, and score systems
+- Editor, Demo, and Shipping configurations with asset cooking
+
+## My Contributions
+
+### 1. Collision Shapes and the Overlap Foundation
+
+- Implemented `UBoxComponent`, `USphereComponent`, and `UCapsuleComponent` on the shared `UShapeComponent` base
+- Added per-shape world AABB calculation and selection-state debug drawing for visual inspection of collision volumes in the editor
+- Split the existing ray-picking `FHitResult` into `FRayHitResult`, then defined collision-oriented `FHitResult` and `FOverlapInfo` structures
+- Registered Box–Box, Box–Sphere, Box–Capsule, Sphere–Sphere, Sphere–Capsule, and Capsule–Capsule tests with `FCollisionDispatcher`
+- Connected world-level overlap updates to Component begin/end overlap events and removed redundant pair checks
+
+Representative commits: [`2842d1ed`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2842d1edb221c0baaf94ebab0ccf2ed580a9c50c), [`2ec0064e`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2ec0064e0184b82d72014660c1fc7fc4ecaa6eb2), [`5578f8c6`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/5578f8c6f0e9474479dc13d281ba00f21f1e0352)
+
+### 2. Procedural Map Chunks and Obstacles
+
+- Implemented a runtime recycling system in which `AMapManager` maintains the active chunk count ahead of the player and removes chunks that have been passed
+- Connected each new chunk to the previous template's exit location and rotation, then placed obstacles and items probabilistically across three lanes
+- Selected placement candidates so all lanes could not become blocked simultaneously, and cleaned up owned obstacles and items with each removed chunk
+- Added wireball and pendulum obstacles, and corrected barrier variants, collision-box sizes, root components, and texture assignment
+- Randomly selected normal or bugged floor materials to add visual variation during a run
+- Fixed chunks being removed too early after the player crossed an exit and adjusted the length of the starting section
+
+Representative commits: [`e86152b4`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/e86152b481f1f573f731787f34ee67bd13b58807), [`c58db0a2`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c58db0a2f0ea6f1a6d99e62a219005e1babebf73), [`07ddd1c6`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/07ddd1c6926774b47eacfde11083f2f431858aaa), [`cefd40ef`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/cefd40eff248df1f629f7902f9b681dfccd14d83), [`e2ebd9a9`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/e2ebd9a9849d809e349fa7cb43211833dfb5e457), [`69aafb54`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/69aafb54eadacc858bbc5d1fff207413db5556fe)
+
+### 3. Imposter Gizmo Mechanic
+
+- Built `FGimmickManager`, which selects a random obstacle target and chooses a translation, rotation, or scale effect
+- Implemented a fake editor-style gizmo that captures an obstacle at runtime and transforms it after a delay
+- Preserved and restored the target's selection-outline state and safely released it if the target was destroyed first
+- Tuned activation delay, spawn probability, and target-selection range to create sudden obstacle transformations during play
+
+Representative commits: [`b7f9ab0b`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/b7f9ab0b2e7ccf04d7ad42cbf802dd4cbc31b682), [`4f47b5c7`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/4f47b5c73f46c3c7d29b3fea2b78def2ed5e73eb), [`d33fb2b8`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/d33fb2b8f3cba83908194739d88d93c0c2b47bf5)
+
+### 4. Player Camera Manager and Final POV Path
+
+- Consolidated position, rotation, FOV, and post-processing into `FMinimalViewInfo`
+- Implemented `APlayerCameraManager` to calculate the current POV from the view target each frame and retain previous/current camera-cache snapshots
+- Applied a priority-sorted list of Camera Modifiers to the final POV and removed modifiers after completion
+- Connected final-POV delivery across Game Mode, Camera Components, Frame Context, and editor/default render pipelines
+- Fixed missing ticks, shadowed disabled defaults, null access, and double destruction of UObjects
+
+Representative commits: [`fac04d55`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/fac04d55fb39298c5ac5742edb784b3a19646a3d), [`4db5ea78`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/4db5ea78cb5b481856e952a80cbf1fc7eb1bc426), [`7776b012`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/7776b012b1dac32a85d76d841f0b7e36344956fd), [`548c3ed5`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/548c3ed522ae8ae4a9f707a502f4c4cdda12f5c7), [`2881f358`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2881f35864d2558df16ff4a2e2aa2255824aed1c), [`43507b08`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/43507b08be71a58b28e69ff4fa7f4ec07948e01f)
+
+### 5. Camera Modifiers, Shake, and Fade
+
+- Implemented modifier fade-in/fade-out alpha, pending-disable state, and priority handling across the effect lifetime
+- Added `UCurveFloat` interpolation and split camera-shake translation XYZ and rotation pitch/yaw/roll into six independent curves
+- Accumulated location and rotation offsets from sine-wave and curve-based shake patterns into the final POV
+- Clarified ownership and destruction between camera-shake patterns and their internal curve UObjects, preventing leaks and double frees
+- Passed fade colour, start/end alpha, and duration into camera post-process values
+
+Representative commits: [`8f2f1d5c`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/8f2f1d5c1e67b774e4bf06261ed99d2f5da8ecac), [`df004263`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/df004263adacd8ee41775fd397d63c5fe8c6d635), [`6020184e`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/6020184e4dd6a761349df1140b056ebcca52b4f5), [`56974f6f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/56974f6f95f3d684bc6d97d64c5970f27e35e822), [`c010b37f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c010b37f68e3b5020c120513c0d12399d844bb11)
+
+## Game-Runtime Architecture
+
+```text
+Title / Story / Playground / Result Scene
+                    │
+                    ▼
+             Lua GameManager
+       State · Score · Items · UI · Dialogue
+                    │
+          ┌─────────┴─────────┐
+          ▼                   ▼
+      ARunner             AMapManager
+ Input · Spring Arm     Active-Chunk Management
+          │                   │
+          │           AMapChunk Template
+          │             │            │
+          │         Obstacle       Item / Gizmo
+          │             │
+          └──── Collision Dispatcher ────┐
+                                        ▼
+                              Lua Hit / Overlap Feedback
+
+AActor::CalcCamera
+        │
+        ▼
+APlayerCameraManager
+View Target → Modifier / Shake → Fade / Letterbox
+        │
+        ▼
+FMinimalViewInfo Camera Cache → Frame Context → Render Pipeline
+```
+
+## Project Structure
+
+```text
+.
+├─ LunaticEngine.sln
+├─ LunaticEngine/
+│  ├─ Asset/Content/Scene/             # Title, Story, Playground, Result
+│  ├─ Scripts/
+│  │  ├─ Common/                       # Shared Lua modules
+│  │  ├─ Game/                         # Game state, player, items, camera
+│  │  └─ UI/                           # HUD, dialogue, scene UI
+│  ├─ Shaders/                         # Geometry, lighting, post-process, UI
+│  ├─ Source/
+│  │  ├─ Editor/
+│  │  ├─ Engine/
+│  │  │  ├─ Camera/                    # Manager, modifiers, shake, POV
+│  │  │  ├─ Collision/                 # Dispatcher, BVH, overlap
+│  │  │  ├─ Component/Shape/           # Box, sphere, capsule
+│  │  │  └─ Scripting/                 # Lua runtime and bindings
+│  │  └─ Game/
+│  │     ├─ GameActors/                # Obstacles, items, gimmicks
+│  │     ├─ Map/                       # Chunk templates and manager
+│  │     └─ Player/                    # Runner
+│  └─ ThirdParty/                      # ImGui, sol2, etc.
+├─ GenerateProjectFiles.bat
+├─ DemoBuild.bat
+├─ ReleaseBuild.bat
+└─ ShippingBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- NuGet package restore
+
+The project uses `directxtk_desktop_win10` and `luajit.native` through NuGet.
+
+### Development Build
+
+1. Run `GenerateProjectFiles.bat` if Visual Studio project files need to be generated.
+2. Open `LunaticEngine.sln` in Visual Studio.
+3. Restore NuGet packages.
+4. Build and run `Debug | x64` or `Release | x64`.
+
+### Deployment Builds
+
+- `DemoBuild.bat`: Builds the Demo configuration and copies runtime resources into `DemoBuild/`
+- `ReleaseBuild.bat`: Builds the Release configuration and copies runtime resources into `ReleaseBuild/`
+- `ShippingBuild.bat`: Builds Shipping, cooks scenes as `.umap`, and stages only the required assets, shaders, and scripts
+
+## Current Status and Limitations
+
+- Targets Windows and DirectX 11.
+- The collision dispatcher currently supports all six pairings among box, sphere, and capsule shapes.
+- Some rotated/branching map-template types and the `MustJump` decision are disabled in the current code, so the procedural layout mainly varies along a straight path.
+- Although additional obstacle Actor classes remain in the codebase, not every type is enabled in the current chunk spawn table.
+- `ProjectSettings.ini` starts from the `Title` scene with `AGameModeBase`; the actual game flow is connected through scenes and Lua scripts.
+- Missing Basic Shape, Spaceship, and SlideOrJump OBJ assets were restored on 19 August 2026 to preserve the repository.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [Rocketstein/Jungle_Week9_Team6](https://github.com/Rocketstein/Jungle_Week9_Team6).
+- The original repository was forked from Week 8, so history before 30 April 2026 was excluded from the Week 9 individual-contribution accounting.
+- The 84 commits attributed to Rocketstein during the core development period include merges and checkpoints; the list above therefore presents representative commits identified from messages, changed files, and the final code.
+- Subsequent asset-restoration commits: [`c751f11f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c751f11f828df289ec9e9bc37d08a0ec26dfbc33), [`76f5df27`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/76f5df27688ac872105712e776fcf95c1ed58802)
+
+---
+
+## 한국어
+
 # Week 9 — Lunatic Engine
 
 > C++로 제작한 DirectX 11 기반 커스텀 엔진 위에 Lua 게임 로직을 결합해 완성한 3레인 러너 프로젝트입니다.

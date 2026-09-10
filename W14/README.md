@@ -1,3 +1,230 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 14 — Krafton Engine Final Game: Game Flow, Lock-On & Encounter Direction
+
+> A Sekiro-inspired action-combat game built with a custom DirectX 11 engine.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the Week 14 results of the [original collaborative project](https://github.com/Chanil-Chong/Jungle_Week14_Team6).
+
+## Project Overview
+
+This project integrates the rendering, animation, physics, particle, audio, and Lua scripting systems developed in Krafton Engine through Week 13 into a standalone game. The player fights ordinary enemies in a Japanese-inspired battlefield before a Blood Moon transition and boss introduction lead into the final encounter.
+
+The in-game credits list my role as `Game Flow & Transition`. A review of Rocketstein-authored commits on the final `main` branch shows that the implementation also covers the lock-on system, title and controls screens, Blood Moon and boss encounters, enemy-spawn effects, and several engine-integration fixes.
+
+- **Development period:** June 2026 (Week 14)
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, HLSL, C++, Lua/sol2, RmlUi, FMOD, PhysX, NvCloth
+- **Areas of responsibility:** Game flow, lock-on, UI and scene transitions, encounter direction, and gameplay integration
+- **Project type:** Four-person team project / portfolio focused on individual contributions
+
+## Key Features
+
+- Action combat built around movement, attacks, guard/deflect, posture, and executions
+- Lock-on with target acquisition and switching, camera tracking, and an on-screen marker
+- Pause, death, revive, victory, and a file-backed leaderboard
+- Connected title, options, controls, credits, and gameplay scenes
+- Opening enemy spawns, a Blood Moon phase, and a boss introduction
+- Combat feedback using particles, BGM, camera shake, and hit reactions
+- Keyboard/mouse and XInput gamepad controls
+- Standalone game builds and release packaging
+
+## My Contributions
+
+### 1. Game Phases and Pause, Death, Revive, and Victory Flow
+
+- Added `AFinaleGameMode` and `AFinaleGameState` with Playing, Paused, CutScene, Dead, Defeated, Victory, GameOver, and Leaderboard phases
+- Implemented pause transitions and Lua bindings, then integrated RmlUi overlays so runtime UI follows the active phase
+- Separated ordinary pause from a soft pause in which cinematic and UI Actors continue ticking, preserving input and transitions on the Defeated screen
+- Synchronised death-camera fades, Death Icon alpha, `GIVE IN`, and the transition to true death
+- Restored player vitals, fade-in and icon effects, and player control during revive
+- Entered the Victory phase after the boss was defeated and recorded active time spent in Playing plus revive count as the score
+- Implemented a top-six leaderboard prioritising faster clear times and fewer revives, together with a three-letter initials-entry UI
+
+Representative implementations: [`AFinaleGameMode`](./KraftonEngine/Source/Game/GameMode/AFinaleGameMode.cpp), [`AFinaleGameState`](./KraftonEngine/Source/Game/GameMode/GameState.cpp), [`GameSoftPauseState`](./KraftonEngine/Source/Game/GameMode/GameSoftPauseState.h), [`GameFlowController.lua`](./KraftonEngine/Content/Script/Game/GameFlowController.lua), [`LeaderboardStore`](./KraftonEngine/Source/Game/Leaderboard/LeaderboardStore.h)
+
+### 2. Lock-On Targeting System
+
+- Implemented new `ULockOnComponent` and `ULockOnMarkerComponent` classes and connected lock-on input to the character's Lua command pipeline
+- Searched for candidates by distance and screen direction, acquiring and releasing only valid targets
+- Interpolated camera rotation, spring-arm length, and target offset during lock-on to maintain a useful combat view
+- Switched to adjacent targets using mouse or right-stick directional input and automatically released targets whose HP reached zero
+- Added a world-space marker material and dedicated `GameOverlayPass` to render the lock-on marker over the combat scene
+- Fixed marker alpha and transparent render-order issues and installed the Component on the player in the final `GamePlay.Scene`
+
+Representative implementations: [`LockOnComponent`](./KraftonEngine/Source/Game/Components/LockOnComponent.cpp), [`LockOnMarkerComponent`](./KraftonEngine/Source/Game/Components/LockOnMarkerComponent.cpp), [`CharacterLockOn.lua`](./KraftonEngine/Content/Script/FinalGameJamScript/Character/CharacterLockOn.lua), [`GameOverlayPass`](./KraftonEngine/Source/Engine/Render/RenderPass/GameOverlayPass.cpp)
+
+### 3. Title, Controls, Scene Fades, and BGM State
+
+- Built `GameTitle.Scene` and an RmlUi title menu with Start, Options, Controls, Credits, and Exit actions
+- Applied title-logo and button assets and refined hover states, spacing, layout, and the Credits scene
+- Created a Controls help page covering keyboard/mouse and gamepad input
+- Added missing gamepad input for pause and execution and standardised the revive key as `Q`
+- Implemented an RmlUi black-sheet scene-fade module for transitions before and after Title → Gameplay
+- Designed `BGMState` to own one named looping channel and prevent duplicate playback of title, battle, and boss tracks
+- Synchronised scene fades with BGM volume and prevented music from restarting when returning from Credits to the title
+- Fixed nested scene-path handling in Project Settings and set the starting scene to `Game/GameTitle`
+
+Representative implementations: [`TitleMenu.lua`](./KraftonEngine/Content/Script/Game/TitleMenu.lua), [`SceneTransition.lua`](./KraftonEngine/Content/Script/Game/SceneTransition.lua), [`BGMState.lua`](./KraftonEngine/Content/Script/Game/BGMState.lua), `Controls.rml`
+
+### 4. Blood Moon, Boss Introduction, and Enemy-Spawn Direction
+
+- Monitored the opening enemies and started the Blood Moon phase exactly once after they had all been removed
+- Interpolated spotlight and height-fog colours and activated a Blood Moon billboard and particles to transform the battlefield atmosphere
+- Faded out the battle BGM, transitioned to the boss track, and invoked the Boss Intro Director
+- Kept the boss hidden at a preparation stage outside the arena until the introduction, then restored its location and visibility
+- Synchronised Blood Moon visuals, player-input freeze, boss spawn effects, weapon visibility, and walk animation during the cinematic
+- Activated the boss encounter and HUD when the introduction ended, then handed boss death to the Victory flow
+- Added `UEnemySpawnEffectComponent`, a particle asset, and an Opening Director that applies per-enemy spawn delays
+- Placed the existing engine cinematic camera in `GamePlay.Scene` and connected it to the enemy-spawn sequence and playback completion
+
+Representative implementations: [`BloodMoonPhase.lua`](./KraftonEngine/Content/Script/Game/BloodMoonPhase.lua), [`BossIntroDirector.lua`](./KraftonEngine/Content/Script/Game/BossIntroDirector.lua), [`IntroSpawnDirector.lua`](./KraftonEngine/Content/Script/Game/IntroSpawnDirector.lua), [`EnemySpawnEffect`](./KraftonEngine/Source/Game/Components/EnemySpawnEffect.cpp)
+
+### 5. Gameplay, Rendering, and Physics Integration Fixes
+
+- Implemented a Kill Volume that triggers immediate true death for the player and normal kill handling for enemies
+- Connected camera shake to damage reactions and added `AddImpulseToBoneAtLocation` for position-based ragdoll impulses
+- Changed static-mesh physics queries to use actual vertex geometry rather than bounding boxes
+- Prevented physics ticks from running before mesh cooking completed
+- Moved the transparent pass later in the rendering pipeline and prevented particles from creating unnecessary shadow passes
+- Extended FBX importer and material integration to handle masked quads and specular reflections correctly
+- Corrected final-scene alpha, ordering, and visibility issues for the lock-on icon, Blood Moon particles, and enemy-spawn particles
+
+## Representative Commits
+
+The commits below were selected by feature from Rocketstein-authored history on `main`. Detailed messages embedded in squash commits were reviewed together with the files actually changed.
+
+| Area | Commit | Verified changes |
+| --- | --- | --- |
+| Game phases and pause | [`45196cd`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/45196cd2f4cf69401bde2cd847ce93df29d53139) | Phase helpers, pause runtime, Lua bindings, and UI — 24 files, +864/-61 |
+| Death and revive | [`4d259dd`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/4d259ddf1bbd11d05f57a8c234db744e2c7d36c8) | Death fade, true death, Give In, and revive flow — 15 files, +529/-144 |
+| Victory and leaderboard | [`651312f`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/651312f21a8cd2ffecdb182f27278d9469bf6ba8) | Victory phase, active time, revive count, and top-six leaderboard — 18 files, +774/-13 |
+| Soft pause | [`d0ddadf`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/d0ddadf2b66d12f0ebee09edcc55aa68d6d09c92) | Soft-pause state and immune-Actor handling — 10 files, +219/-49 |
+| Lock-on | [`9c9c2b7`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/9c9c2b704e8d728de68ababaec99a2007a49b520) | Target search/switching, camera, marker, and overlay pass — 21 files, +947/-11 |
+| Title UI | [`1060d8d`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/1060d8dfe1b2b15e744537c430d26b432ef52c12) | Title scene, menu, assets, and Lua exit handling — 21 files, +228/-86 |
+| Scene fade and BGM | [`0c742e7`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/0c742e70fcc68366fdd3d31cc792104614744eed) | SceneTransition, BGMState, and track assets — 9 files, +331/-4 |
+| Blood Moon | [`659b6a6`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/659b6a6d49c412b48006c6cb9c159265e53769e4) | BloodMoonPhase Lua implementation |
+| Boss introduction | [`3f10f25`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/3f10f25f79f1240e36d9e6f41093095127626a54) | Connected Blood Moon and the Boss Intro Director |
+| Enemy spawning | [`57e23a4`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/57e23a4751d40e7e71b4475447ac5ba69166300a) | Implemented EnemySpawnEffect Component |
+| Physics query | [`25783ac`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/25783ac8c108f6ccbd89b27f3009c9759d0b1764) | Corrected static-mesh query geometry |
+| Rendering order | [`94d206e`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/94d206ed02c55ad78c38c447f7e40ec90a61bd3a) | Corrected transparent-pass execution order |
+
+## Game-Flow Architecture
+
+```text
+GameTitle.Scene
+ Title / Options / Controls / Credits
+        │ Start
+        ▼
+Scene Fade-Out + BGM Ducking
+        │
+        ▼
+GamePlay.Scene
+ Intro Cinematic + Staggered Enemy Spawn
+        │
+        ▼
+Playing ── ESC / Start ── Paused
+   │
+   ├─ Player Death ──▶ Dead ── Q Revive ──▶ Playing
+   │                         └─ Give In / Full Fade ──▶ Defeated
+   │
+   └─ Minor Enemies Cleared
+          │
+          ▼
+      Blood Moon Phase
+      Lighting / Fog / Particles / BGM
+          │
+          ▼
+      Boss Intro → Boss Encounter
+          │ Boss Slain
+          ▼
+        Victory → Score Submit / Leaderboard / Title
+```
+
+`AFinaleGameMode` owns phases and runtime authority, while `GameFlowController.lua` reads the current phase and drives UI and fade effects. `SceneTransition` and `BGMState` coordinate the visual and audio transition between Title and Gameplay.
+
+## Lock-On Architecture
+
+```text
+Middle Mouse / R3
+        │
+        ▼
+ULockOnComponent
+  ├─ Distance/Angle-Based Target Search
+  ├─ Mouse / Right-Stick Target Switching
+  ├─ Camera Rotation / Spring-Arm Interpolation
+  └─ Release on Target Death or Excess Distance
+        │
+        ▼
+ULockOnMarkerComponent
+        │
+        ▼
+GameOverlayPass → Lock-On Marker
+```
+
+## Controls
+
+| Action | Keyboard / Mouse | Gamepad |
+| --- | --- | --- |
+| Move | `W` / `A` / `S` / `D` | Left Stick |
+| Camera | Mouse | Right Stick |
+| Attack | Left Mouse | `RB` |
+| Guard / Deflect | Hold / tap Right Mouse | Hold / tap `LB` |
+| Execution | `E` | `RT` |
+| Lock-on | Middle Mouse | `R3` |
+| Switch target | Move mouse left/right | Move Right Stick left/right |
+| Pause | `Esc` | Start |
+| Revive | `Q` | — |
+
+## Project Structure
+
+```text
+.
+├─ KraftonEngine.sln
+├─ KraftonEngine/
+│  ├─ Content/
+│  │  ├─ Game/UI/                         # Title, controls, pause, death, victory
+│  │  ├─ Scene/Game/                      # GameTitle, GamePlay, GameCredits
+│  │  └─ Script/Game/                     # Flow, transitions, encounter directors
+│  ├─ Source/
+│  │  ├─ Engine/Render/RenderPass/         # GameOverlay and transparent pipeline
+│  │  └─ Game/
+│  │     ├─ Components/                   # LockOn, marker, EnemySpawnEffect
+│  │     ├─ GameMode/                     # Finale GameMode and GameState
+│  │     ├─ Leaderboard/
+│  │     └─ Lua/GameLuaBindings.*
+│  ├─ Shaders/
+│  └─ ThirdParty/                         # Lua, RmlUi, FMOD, FBX, PhysX, NvCloth
+├─ GenerateProjectFiles.bat
+├─ GameBuild.bat
+├─ PackageRelease.bat
+└─ ReleaseBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- NuGet package restore
+
+The project uses the NuGet package `directxtk_desktop_win10`, together with repository-provided Lua/sol2, RmlUi, FMOD, FBX SDK, PhysX, and NvCloth libraries.
+
+### Build Instructions
+
+1. Run `GenerateProjectFiles.bat` if Visual Studio project files need to be generated.
+2. Open `KraftonEngine.sln` in Visual Studio.
+3. Restore NuGet packages.
+4. Build `Debug | x64` or `Release | x64` to inspect the editor, or `Game | x64` for the standalone game.
+
+The standalone game starts from the `Game/GameTitle` scene configured in `ProjectSettings.ini`. Use `GameBuild.bat` for a game build and `PackageRelease.bat` or `ReleaseBuild.bat` for release packaging.
+
+---
+
+## 한국어
+
 # Week 14 — Krafton Engine Final Game: Game Flow · Lock-on · Encounter Direction
 
 > DirectX 11 기반 커스텀 엔진으로 제작한 Sekiro 스타일 액션 전투 게임입니다.  
@@ -218,5 +445,4 @@ GameOverlayPass → Lock-on Marker
 4. Editor 확인은 `Debug | x64` 또는 `Release | x64`, Standalone 실행은 `Game | x64`로 빌드합니다.
 
 Standalone Game은 `ProjectSettings.ini`의 `Game/GameTitle` Scene에서 시작합니다. 게임 빌드는 `GameBuild.bat`, 배포 Package는 `PackageRelease.bat` 또는 `ReleaseBuild.bat`으로 구성할 수 있습니다.
-
 

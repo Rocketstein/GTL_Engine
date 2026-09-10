@@ -1,3 +1,133 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 3 — ZZUP Engine
+
+> An extension of the Week 2 engine featuring multi-scene editing, billboards, spotlights, SubUV animation, text rendering, and debug visualisation.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original team project](https://github.com/Rocketstein/Game-Tech-Lab-W3).
+
+## Project Overview
+
+Building on the existing DirectX 11 engine architecture, we created an editing environment capable of switching between and managing multiple scenes. We also added visualisation features required by an editor, including 2D textures, text, and lighting debug geometry.
+
+- **Development period:** 19–26 March 2026
+- **Development environment:** Windows, Visual Studio 2022, C++17
+- **Key technologies:** DirectX 11, HLSL, Dear ImGui, JSON, DirectXTK
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- `FSceneManager` for creating, switching, and deleting multiple `UScene` instances
+- UUID-based object serialisation and scene save/load support
+- Lit, Unlit, and Wireframe view modes with render show flags
+- Dynamic line batching for grids, AABBs, and spotlight debug rendering
+- SubUV animation with sprite-sheet playback and an editing panel
+- Camera-facing billboards and texture-resource loading
+- Korean font atlases, GPU-instanced text rendering, and `UTextComponent`
+- `FName`-based object naming with UUID display and editing
+- Ray-casting picking, Ctrl multi-selection, and translation/rotation/scale gizmos
+- ImGui-based Scene Manager, Inspector, camera, and view settings
+
+## My Contributions
+
+### 1. Week 3 Project Foundation and Build Stabilisation
+
+- Prepared the Week 2 engine as the starting point for the Week 3 project and reorganised the solution and project structure
+- Updated include paths and fixed build errors after moving engine files
+- Resolved UTF-8 encoding issues affecting Korean comments and UI strings
+
+Representative commits: [`41835850`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/418358502d14077e60dd087ac49b41200fc6c123), [`e1f1079f`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/e1f1079f4bbfb67cc1863cc3e60abd2d4489b94b), [`de191bd1`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/de191bd12a93c217926db2660473bbec570f2031), [`c0310ef7`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/c0310ef730b90ffecf5f826c9851559ff7482323)
+
+### 2. Redesign of the World and Scene Architecture
+
+- Extended `UWorld` to manage multiple `UScene` instances and the active scene through `FSceneManager`
+- Separated Actor creation, ticking, and shutdown responsibilities at scene level
+- Moved camera and gizmo ownership into `FEditorViewportClient`, reducing dependencies on the editor engine
+- Connected camera, gizmo, and selection-state updates to scene creation, switching, and deletion
+- Implemented a Scene Manager window and loaded-scene selection UI
+
+Representative commits: [`331848b3`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/331848b39cfaebeb8bc052eb07477abfe3e269f3), [`9c09ad1e`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/9c09ad1e882d572ccdbd7ed8b1187d8a1d4c2eaf), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`ac7ca66a`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/ac7ca66ab748005fc378b0ef359247ee4f81dafd)
+
+### 3. Restoring and Extending Scene Save/Load
+
+- Restored the existing JSON save/load functionality for the refactored world and scene architecture
+- Serialised scenes, actors, and components by UUID, then reconnected parent, root-component, and owning-scene relationships after loading
+- Added `.Scene` save/load support through file dialogs and prevented duplicate UUIDs
+- Fixed stale viewport and gizmo references to objects from the previous scene after switching scenes
+
+Representative commits: [`331848b3`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/331848b39cfaebeb8bc052eb07477abfe3e269f3), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3)
+
+### 4. Billboard and Spotlight Foundations
+
+- Implemented `UBillBoardComponent`, a textured quad that always faces the camera
+- Added billboard texture loading, ray-casting picking, AABB updates, and serialisation
+- Designed and implemented `ULightComponent`, `USpotlightComponent`, and `ASpotlight`, and connected them to editor spawning
+- Calculated spotlight cone vertices from height, radius, yaw, and pitch, then visualised them through line batching
+- Added real-time ImGui editing for the selected spotlight's direction, size, vertex count, and colour
+- Integrated spotlight icons with render collection, mesh buffers, and scene saving
+
+Representative commits: [`eb35897c`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/eb35897c08b5f2ebf35ee2dde47b16928de54b91), [`bff8cb6f`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/bff8cb6f0142d25ff34c5e7196781250d15d9042), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3)
+
+### 5. Integration Stabilisation and Follow-up Fixes
+
+- Fixed SubUV shadowing that incorrectly hid effects behind unrelated objects, as well as texture restoration after scene loading
+- Cleaned up naming and reference relationships across scenes, actors, and the object factory
+
+Representative commits: [`28e5c81c`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/28e5c81c5132f9b7290fd195e0179f2c33fe110c), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3), [`d51f10e7`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/d51f10e76d0fdfbec9008bab15671fc3aa7f3d6a), [`1b3ef804`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/1b3ef80432532ffa839872a0931868e242a555a1)
+
+## Controls
+
+| Input | Action |
+| --- | --- |
+| `W` / `A` / `S` / `D` | Move the camera forwards/backwards and left/right |
+| `Q` / `E` | Move the camera down/up |
+| Arrow keys or right-mouse drag | Rotate the camera |
+| Mouse wheel | Adjust FOV or orthographic width |
+| `O` | Switch between perspective and orthographic projection |
+| Left click | Select an object or gizmo axis |
+| `Ctrl` + left click | Select multiple objects |
+| Left-mouse drag | Edit the transform using the selected gizmo |
+| `Space` | Cycle Translate → Rotate → Scale modes |
+
+The ImGui **Jungle Control Panel** provides scene, camera, gizmo, and view-mode settings. Scene, object, and component properties can be edited through the **Scene Manager** and **Picked Object** windows.
+
+## Project Structure
+
+```text
+.
+├─ Assets/                 # Shaders, font atlases, icons, effect textures
+├─ Editor/                 # Editor engine, viewport, ImGui panels
+├─ Engine/
+│  ├─ Classes/            # Actors and spotlights
+│  ├─ Core/               # Input, FName, shared types, console
+│  ├─ FileManager/        # Scene serialisation and editor settings
+│  ├─ Fonts/              # Font cache and DDS loading
+│  ├─ Render/             # D3D11 device, resources, render commands, pipeline
+│  └─ Scene/              # Camera, UScene, FSceneManager
+├─ Object/                # UObject, object manager, object factory
+├─ World/
+│  ├─ Gizmo/              # Transform-gizmo management
+│  ├─ Light/              # Light and spotlight components
+│  └─ Primitives/         # Basic shapes, billboards, text, SubUV
+└─ Saves/                 # Saved scene data
+```
+
+## Building and Running
+
+1. Open `Week3.sln` in Visual Studio 2022 on Windows.
+2. Select a `Debug` or `Release` configuration for `x64`.
+3. Build and run the solution.
+
+The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [Rocketstein/Game-Tech-Lab-W3](https://github.com/Rocketstein/Game-Tech-Lab-W3).
+- The individual contributions documented here were identified by reviewing author metadata, commit messages, and the files changed in the original repository.
+
+---
+
+## 한국어
+
 # Week 3 — ZZUP Engine
 
 > Week 2 엔진을 확장해 멀티 씬 편집, Billboard, Spotlight, SubUV, 텍스트 렌더링과 디버그 뷰를 구현한 프로젝트입니다.  
