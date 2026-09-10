@@ -2,7 +2,7 @@
 
 > **Languages:** English · [한국어](#한국어)
 
-# Week 14 — Krafton Engine Final Game: Game Flow, Lock-On & Encounter Direction
+# Week 14 — Krafton Engine Final Game: Game Flow, Lock-On & Transitions
 
 > A Sekiro-inspired action-combat game built with a custom DirectX 11 engine.  
 > This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the Week 14 results of the [original collaborative project](https://github.com/Chanil-Chong/Jungle_Week14_Team6).
@@ -210,7 +210,7 @@ The standalone game starts from the `Game/GameTitle` scene configured in `Projec
 
 > **Languages:** [English](#english) · 한국어
 
-# Week 14 — Krafton Engine Final Game: Game Flow · Lock-on · Encounter Direction
+# Week 14 — Krafton Engine Final Game: Game Flow · Lock-on · Transitions
 
 > DirectX 11 기반 커스텀 엔진으로 제작한 Sekiro 스타일 액션 전투 게임입니다.  
 > 이 저장소는 [원본 협업 프로젝트](https://github.com/Chanil-Chong/Jungle_Week14_Team6)의 Week 14 결과물 중 **Rocketstein (Hyungjun Kim)**의 작업을 중심으로 정리한 포트폴리오 스냅샷입니다.
