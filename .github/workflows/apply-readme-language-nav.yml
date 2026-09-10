@@ -1,0 +1,69 @@
+name: Apply reciprocal README language navigation
+
+on:
+  push:
+    branches:
+      - docs/english-readmes
+    paths:
+      - .github/workflows/apply-readme-language-nav.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-readmes:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out documentation branch
+        uses: actions/checkout@v4
+        with:
+          ref: docs/english-readmes
+          fetch-depth: 0
+
+      - name: Add reciprocal language navigation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          paths = [Path("README.md")] + [Path(f"W{week:02d}/README.md") for week in range(1, 15)]
+          top_navigation = "> **Languages:** English · [한국어](#한국어)"
+          english_anchor = '<a id="english"></a>'
+          korean_heading = "## 한국어"
+          korean_navigation = "> **Languages:** [English](#english) · 한국어"
+
+          for path in paths:
+              text = path.read_text(encoding="utf-8")
+
+              if english_anchor not in text:
+                  if top_navigation not in text:
+                      raise RuntimeError(f"Top language navigation not found in {path}")
+                  text = text.replace(
+                      top_navigation,
+                      f"{english_anchor}\n\n{top_navigation}",
+                      1,
+                  )
+
+              expected_korean_block = f"{korean_heading}\n\n{korean_navigation}"
+              if expected_korean_block not in text:
+                  if korean_heading not in text:
+                      raise RuntimeError(f"Korean heading not found in {path}")
+                  text = text.replace(
+                      korean_heading,
+                      expected_korean_block,
+                      1,
+                  )
+
+              path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Remove temporary workflow and commit documentation changes
+        shell: bash
+        run: |
+          rm .github/workflows/apply-readme-language-nav.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md W*/README.md .github/workflows/apply-readme-language-nav.yml
+          git commit -m "docs: add reciprocal README language navigation"
+          git push origin HEAD:docs/english-readmes
