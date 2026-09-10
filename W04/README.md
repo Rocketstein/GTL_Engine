@@ -100,8 +100,6 @@ CO-PASS Engine is an educational engine project in which the following systems w
 - Added `D3D11WidgetRenderer` and widget render data to draw splitter boundaries and visualise layout interaction state
 - Connected the layouts to the ImGui Control Panel, dynamically creating and destroying the viewport panels required by each configuration
 
-Representative commits: [`538cb969`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/538cb969787e166598077851a9f6d299b2750ec8), [`75b1d8c7`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/75b1d8c7d836c6f77a360d1860e3f5282ae15d00), [`92be2f17`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/92be2f1742d791e39b4693b186ecc6e921db0fd5), [`19d89d60`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/19d89d6022d3350e2283c9bf5648b20997b6184b), [`73b6df79`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/73b6df797002cb6ab6cf0f6cbd322cc21af11071)
-
 ### 2. Multi-Viewport Input, Selection, and Rendering Stabilisation
 
 - Reworked the editor loop so every active viewport ticks and renders with its own camera and render context
@@ -109,8 +107,6 @@ Representative commits: [`538cb969`](https://github.com/DKael/KraftonJungle_Week
 - Shared one `FViewportSelectionController` between viewports to prevent duplicate selections and deletion conflicts
 - Improved the rendering path by collecting view-independent scene data once per frame and reusing it across panels
 - Propagated newly loaded scenes and the most recently focused panel to the Overlay Manager, Console, and Global Editor Context
-
-Representative commits: [`74504602`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/745046028fcd003fbfe2b6837b6a64683b4de2ea), [`931280a8`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/931280a8a5fed07746d4a198a719200ca76f5071), [`1b7ae7df`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/1b7ae7df64b1da4c0d2bef21fdfbcefc9de6ca08), [`0c0b3150`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/0c0b31508be6e1b2be751f8a1a44f3e5299edc36), [`3dfcdf38`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/3dfcdf38d829ecb13e270327f71c655c2eade31a), [`e3c910fb`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/e3c910fbe926f9ac68aff7da4bb12e36742670a8)
 
 ### 3. Orthographic Views and Camera-State Serialisation
 
@@ -120,8 +116,6 @@ Representative commits: [`74504602`](https://github.com/DKael/KraftonJungle_Week
 - Reset the navigation controller's target location after scene loading, preventing interpolation back to the previous camera position
 - Fixed UUID, primitive, and sprite visibility settings that were not being applied to the actual scene show flags
 
-Representative commits: [`9083e89c`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/9083e89c4aa8bf140128b72064346c2345378782), [`30d23293`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/30d2329305bb5445903fdad99383d2d4246acac4), [`5d9bb3c2`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/5d9bb3c2e1ac776af3cd0e37508e16878641ea99), [`a72b3962`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/a72b396262d9711b1afeee93abc0bcd404cc1be2)
-
 ### 4. Standalone OBJ Viewer and Renderer Integration
 
 - Added `FObjViewerEngineLoop`, enabled by the `IS_OBJ_VIEWER` configuration, to provide a model-inspection path independent of the editor
@@ -130,8 +124,6 @@ Representative commits: [`9083e89c`](https://github.com/DKael/KraftonJungle_Week
 - Stabilised model and material-texture loading by fixing file-dialog and Texture Loader initialisation errors
 - Propagated Lit/Unlit/Wireframe view modes and Back/Front/None cull modes from the viewer to the renderer
 
-Representative commits: [`595e8f24`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/595e8f24defff8a59bd432124be087b81c15858f), [`148079b7`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/148079b78075c525d4be429708abfa1ab20255f1), [`f97c85b8`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/f97c85b8a5ffb39b052c063a72225d6926c9c4ce), [`f27d441e`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/f27d441e2ceabbc9bddd15c7a7488a059849f720), [`ef6b4027`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/ef6b40279afd5825c6896e130a7ef735e033480d)
-
 ### 5. OBJ Viewer Model-Inspection UX
 
 - Connected six-direction camera-alignment controls to quaternion Slerp for smooth viewpoint transitions
@@ -139,8 +131,6 @@ Representative commits: [`595e8f24`](https://github.com/DKael/KraftonJungle_Week
 - Added per-axis relative scaling and absolute scaling, with automatic normalisation for models of extreme size
 - Fixed an interaction bug that reset absolute scale after axis alignment or scale dragging
 - Added OBJ sample assets for validating complex models with multiple materials
-
-Representative commits: [`c75c2084`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/c75c208432a14d6ecb2f76cb47fd85cd9413044c), [`0b0f22f3`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/0b0f22f35db4f057d3232ea4abaed8f41d1bddb1), [`db179cfd`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/db179cfd17433edbf2cc47fd5a527769a713e4c8), [`19bb401b`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/19bb401b62fefb59d0a39eaeb44ef56a4562a622), [`279ff109`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/279ff109208458a72b60dd4afe1830d2fb71b067), [`83ad228b`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/83ad228b9f6462ab75a2b2b34df612ba9820344c), [`c61466a1`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/c61466a193f61cc2fed659ae9013b0c0869e4a05)
 
 ## 4. Technology Stack
 
@@ -645,8 +635,6 @@ CO-PASS Engine은 다음 기능을 직접 구현한 학습형 엔진 프로젝�
 - `D3D11WidgetRenderer`와 Widget Render Data를 추가해 Splitter 경계를 렌더링하고 레이아웃 조작 상태를 시각화
 - ImGui Control Panel에서 레이아웃을 즉시 전환하고 각 구성에 필요한 뷰포트 패널을 동적으로 생성·정리하도록 연결
 
-대표 커밋: [`538cb969`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/538cb969787e166598077851a9f6d299b2750ec8), [`75b1d8c7`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/75b1d8c7d836c6f77a360d1860e3f5282ae15d00), [`92be2f17`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/92be2f1742d791e39b4693b186ecc6e921db0fd5), [`19d89d60`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/19d89d6022d3350e2283c9bf5648b20997b6184b), [`73b6df79`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/73b6df797002cb6ab6cf0f6cbd322cc21af11071)
-
 ### 2. 멀티 뷰포트 입력·선택·렌더링 안정화
 
 - 모든 활성 뷰포트가 각자의 카메라와 렌더 컨텍스트로 Tick·Render되도록 에디터 루프 재구성
@@ -654,8 +642,6 @@ CO-PASS Engine은 다음 기능을 직접 구현한 학습형 엔진 프로젝�
 - 여러 뷰포트가 하나의 `FViewportSelectionController`를 공유하도록 해 중복 선택과 삭제 충돌 방지
 - 씬의 View-independent Render Data를 프레임당 한 번만 수집하고 각 패널에서 재사용하도록 렌더 경로 개선
 - 새로 로드한 Scene과 마지막으로 포커스된 패널을 Overlay Manager, Console, Global Editor Context에 전파
-
-대표 커밋: [`74504602`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/745046028fcd003fbfe2b6837b6a64683b4de2ea), [`931280a8`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/931280a8a5fed07746d4a198a719200ca76f5071), [`1b7ae7df`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/1b7ae7df64b1da4c0d2bef21fdfbcefc9de6ca08), [`0c0b3150`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/0c0b31508be6e1b2be751f8a1a44f3e5299edc36), [`3dfcdf38`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/3dfcdf38d829ecb13e270327f71c655c2eade31a), [`e3c910fb`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/e3c910fbe926f9ac68aff7da4bb12e36742670a8)
 
 ### 3. 정사영 뷰와 카메라 상태 직렬화
 
@@ -665,8 +651,6 @@ CO-PASS Engine은 다음 기능을 직접 구현한 학습형 엔진 프로젝�
 - 씬 로드 후 Navigation Controller의 목표 위치를 함께 초기화해 이전 카메라로 보간되는 문제 수정
 - UUID, Primitive, Sprite 표시 여부가 실제 Scene Show Flag에 반영되지 않던 문제 수정
 
-대표 커밋: [`9083e89c`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/9083e89c4aa8bf140128b72064346c2345378782), [`30d23293`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/30d2329305bb5445903fdad99383d2d4246acac4), [`5d9bb3c2`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/5d9bb3c2e1ac776af3cd0e37508e16878641ea99), [`a72b3962`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/a72b396262d9711b1afeee93abc0bcd404cc1be2)
-
 ### 4. 독립 OBJ Viewer와 렌더러 연동
 
 - `IS_OBJ_VIEWER` 구성에서 동작하는 `FObjViewerEngineLoop`를 추가해 에디터와 분리된 모델 검사 실행 경로 구현
@@ -675,8 +659,6 @@ CO-PASS Engine은 다음 기능을 직접 구현한 학습형 엔진 프로젝�
 - 파일 대화상자와 Texture Loader 초기화 오류를 수정해 모델과 재질 텍스처 로딩 안정화
 - Lit / Unlit / Wireframe View Mode와 Back / Front / None Cull Mode를 Viewer에서 렌더러까지 전달
 
-대표 커밋: [`595e8f24`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/595e8f24defff8a59bd432124be087b81c15858f), [`148079b7`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/148079b78075c525d4be429708abfa1ab20255f1), [`f97c85b8`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/f97c85b8a5ffb39b052c063a72225d6926c9c4ce), [`f27d441e`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/f27d441e2ceabbc9bddd15c7a7488a059849f720), [`ef6b4027`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/ef6b40279afd5825c6896e130a7ef735e033480d)
-
 ### 5. OBJ Viewer 모델 검사 UX 개선
 
 - 6방향 카메라 정렬 입력과 Quaternion Slerp를 연결해 시점 전환을 부드럽게 구현
@@ -684,8 +666,6 @@ CO-PASS Engine은 다음 기능을 직접 구현한 학습형 엔진 프로젝�
 - XYZ 축별 상대 스케일과 절대 스케일을 함께 제공하고, 극단적인 크기의 모델을 자동 정규화
 - 축 정렬 또는 Scale Drag 이후 Absolute Scale이 초기화되던 상호작용 오류 수정
 - 복잡한 다중 Material 모델을 검증할 수 있도록 OBJ 샘플 자산 보강
-
-대표 커밋: [`c75c2084`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/c75c208432a14d6ecb2f76cb47fd85cd9413044c), [`0b0f22f3`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/0b0f22f35db4f057d3232ea4abaed8f41d1bddb1), [`db179cfd`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/db179cfd17433edbf2cc47fd5a527769a713e4c8), [`19bb401b`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/19bb401b62fefb59d0a39eaeb44ef56a4562a622), [`279ff109`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/279ff109208458a72b60dd4afe1830d2fb71b067), [`83ad228b`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/83ad228b9f6462ab75a2b2b34df612ba9820344c), [`c61466a1`](https://github.com/DKael/KraftonJungle_Week4_Team8/commit/c61466a193f61cc2fed659ae9013b0c0869e4a05)
 
 ## 4. 기술 스택
 

@@ -91,25 +91,6 @@ Representative implementations: [`BloodMoonPhase.lua`](./KraftonEngine/Content/S
 - Extended FBX importer and material integration to handle masked quads and specular reflections correctly
 - Corrected final-scene alpha, ordering, and visibility issues for the lock-on icon, Blood Moon particles, and enemy-spawn particles
 
-## Representative Commits
-
-The commits below were selected by feature from Rocketstein-authored history on `main`. Detailed messages embedded in squash commits were reviewed together with the files actually changed.
-
-| Area | Commit | Verified changes |
-| --- | --- | --- |
-| Game phases and pause | [`45196cd`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/45196cd2f4cf69401bde2cd847ce93df29d53139) | Phase helpers, pause runtime, Lua bindings, and UI — 24 files, +864/-61 |
-| Death and revive | [`4d259dd`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/4d259ddf1bbd11d05f57a8c234db744e2c7d36c8) | Death fade, true death, Give In, and revive flow — 15 files, +529/-144 |
-| Victory and leaderboard | [`651312f`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/651312f21a8cd2ffecdb182f27278d9469bf6ba8) | Victory phase, active time, revive count, and top-six leaderboard — 18 files, +774/-13 |
-| Soft pause | [`d0ddadf`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/d0ddadf2b66d12f0ebee09edcc55aa68d6d09c92) | Soft-pause state and immune-Actor handling — 10 files, +219/-49 |
-| Lock-on | [`9c9c2b7`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/9c9c2b704e8d728de68ababaec99a2007a49b520) | Target search/switching, camera, marker, and overlay pass — 21 files, +947/-11 |
-| Title UI | [`1060d8d`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/1060d8dfe1b2b15e744537c430d26b432ef52c12) | Title scene, menu, assets, and Lua exit handling — 21 files, +228/-86 |
-| Scene fade and BGM | [`0c742e7`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/0c742e70fcc68366fdd3d31cc792104614744eed) | SceneTransition, BGMState, and track assets — 9 files, +331/-4 |
-| Blood Moon | [`659b6a6`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/659b6a6d49c412b48006c6cb9c159265e53769e4) | BloodMoonPhase Lua implementation |
-| Boss introduction | [`3f10f25`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/3f10f25f79f1240e36d9e6f41093095127626a54) | Connected Blood Moon and the Boss Intro Director |
-| Enemy spawning | [`57e23a4`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/57e23a4751d40e7e71b4475447ac5ba69166300a) | Implemented EnemySpawnEffect Component |
-| Physics query | [`25783ac`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/25783ac8c108f6ccbd89b27f3009c9759d0b1764) | Corrected static-mesh query geometry |
-| Rendering order | [`94d206e`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/94d206ed02c55ad78c38c447f7e40ec90a61bd3a) | Corrected transparent-pass execution order |
-
 ## Game-Flow Architecture
 
 ```text
@@ -318,25 +299,6 @@ Week 13까지 개발한 Krafton Engine의 Rendering, Animation, Physics, Particl
 - Masked Quad와 Specular Reflection을 올바르게 처리하도록 FBX Importer 및 Material 통합 보완
 - Lock-on Icon, Blood Moon Particle, Enemy Spawn Particle의 Alpha·순서·표시 문제를 최종 Scene에서 수정
 
-## 대표 커밋
-
-아래는 `main` 브랜치의 Rocketstein 작성 이력에서 기능 단위로 선별한 커밋입니다. Squash Commit의 본문에 포함된 세부 커밋 메시지와 실제 변경 파일을 함께 확인했습니다.
-
-| 영역 | 커밋 | 확인된 변경사항 |
-| --- | --- | --- |
-| Game Phase·Pause | [`45196cd`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/45196cd2f4cf69401bde2cd847ce93df29d53139) | Phase Helper, Pause Runtime·Lua Binding·UI — 24 files, +864/-61 |
-| Death·Revive | [`4d259dd`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/4d259ddf1bbd11d05f57a8c234db744e2c7d36c8) | Death Fade, True Death, Give In, Revive Flow — 15 files, +529/-144 |
-| Victory·Leaderboard | [`651312f`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/651312f21a8cd2ffecdb182f27278d9469bf6ba8) | Victory Phase, Active Time, Revive Count, Top-6 Leaderboard — 18 files, +774/-13 |
-| Soft Pause | [`d0ddadf`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/d0ddadf2b66d12f0ebee09edcc55aa68d6d09c92) | SoftPause State와 Immune Actor 처리 — 10 files, +219/-49 |
-| Lock-on | [`9c9c2b7`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/9c9c2b704e8d728de68ababaec99a2007a49b520) | Target 탐색·전환, Camera, Marker, Overlay Pass — 21 files, +947/-11 |
-| Title UI | [`1060d8d`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/1060d8dfe1b2b15e744537c430d26b432ef52c12) | Title Scene·Menu·Asset·Lua 종료 처리 — 21 files, +228/-86 |
-| Scene Fade·BGM | [`0c742e7`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/0c742e70fcc68366fdd3d31cc792104614744eed) | SceneTransition, BGMState와 Track Asset — 9 files, +331/-4 |
-| Blood Moon | [`659b6a6`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/659b6a6d49c412b48006c6cb9c159265e53769e4) | BloodMoonPhase Lua 구현 |
-| Boss Intro | [`3f10f25`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/3f10f25f79f1240e36d9e6f41093095127626a54) | Blood Moon과 Boss Intro Director 연결 |
-| Enemy Spawn | [`57e23a4`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/57e23a4751d40e7e71b4475447ac5ba69166300a) | EnemySpawnEffect Component 구현 |
-| Physics Query | [`25783ac`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/25783ac8c108f6ccbd89b27f3009c9759d0b1764) | Static Mesh Query Geometry 수정 |
-| Rendering Order | [`94d206e`](https://github.com/Chanil-Chong/Jungle_Week14_Team6/commit/94d206ed02c55ad78c38c447f7e40ec90a61bd3a) | Transparent Pass 실행 순서 수정 |
-
 ## Game Flow 구조
 
 ```text
@@ -449,4 +411,3 @@ GameOverlayPass → Lock-on Marker
 4. Editor 확인은 `Debug | x64` 또는 `Release | x64`, Standalone 실행은 `Game | x64`로 빌드합니다.
 
 Standalone Game은 `ProjectSettings.ini`의 `Game/GameTitle` Scene에서 시작합니다. 게임 빌드는 `GameBuild.bat`, 배포 Package는 `PackageRelease.bat` 또는 `ReleaseBuild.bat`으로 구성할 수 있습니다.
-

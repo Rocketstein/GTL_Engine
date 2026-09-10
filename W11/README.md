@@ -41,8 +41,6 @@ Week 11 was not simply an exercise in adding macros. Its core achievement was a 
 - Configured `GENERATED_BODY` to expose `StaticClass`, `StaticStruct`, parent-type information, and registrar access
 - Propagated `DisplayName`, `Category`, Min/Max/Speed values, and property flags into generated code
 
-Representative commits: [`b306f657`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/b306f657d7999f8ec58d87ed6a21be8693040d2d), [`20e1b79c`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/20e1b79ce696ce70dfcf272fbe6e4b8727ccdc11), [`ad1a23b9`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/ad1a23b9d047bfa2d8287517c332b39e1932b494)
-
 ### 2. Polymorphic `FProperty` and Schema/Instance Separation
 
 - Replaced the original single `FProperty`, which copied a value pointer on each access, with a hierarchy of type-specific property classes
@@ -50,8 +48,6 @@ Representative commits: [`b306f657`](https://github.com/keonwookang0914/Jungle_W
 - Used `ContainerPtrToValuePtr` to calculate the actual address of an object, struct, or array element, allowing schemas to be reused across instances
 - Removed object slicing caused by copying and separated type-specific `Serialize` and `Deserialize` behaviour through virtual functions
 - Clarified ownership of `FArrayProperty`'s inner property and its recursive access model
-
-Representative commits: [`3375dd14`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/3375dd14), [`6ee18304`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/6ee18304), [`60d02c8d`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/60d02c8d69a42be1612169ffce19353e574b9246), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
 
 ### 3. Editor and Serialisation Integration, with Existing-Component Migration
 
@@ -62,8 +58,6 @@ Representative commits: [`3375dd14`](https://github.com/keonwookang0914/Jungle_W
 - Migrated hand-written property code in Actors and light, billboard, scene, mesh, and movement Components to macro-based registration
 - Unified scene persistence so only non-transient properties are processed through the shared `Serialize`/`Deserialize` path
 
-Representative commits: [`60d02c8d`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/60d02c8d69a42be1612169ffce19353e574b9246), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
-
 ### 4. `UField`, `UStruct`, and `UEnum` Metadata-Object Hierarchy
 
 - Organised reflection types into the `UObject → UField → UStruct → UClass` inheritance hierarchy
@@ -73,16 +67,12 @@ Representative commits: [`60d02c8d`](https://github.com/keonwookang0914/Jungle_W
 - Connected deferred registration so static metadata objects are safely registered after the Object Array is initialised
 - Inherited cast flags across core metadata types, establishing a fast path for common `IsA` checks
 
-Representative commits: [`d43e6524`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/d43e652438ac7f6f7deffc65139c23b140f9473b), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
-
 ### 5. Property Lifetime Policies and Follow-up Reflection/GC Design
 
 - Added `DuplicateTransient` and `NonPIEDuplicateTransient` flags to distinguish values that must be reset during duplication
 - Added foundational types and documentation for `FField`, `FFieldClass`, and `FFieldVariant` as an experiment in lightweight metadata fields
 - Documented the implementation order and dependencies leading to object/class properties, `FField` iteration, CDOs, mark-and-sweep garbage collection, and `UFunction`
 - Updated the property-reflection documentation and the behaviour and constraints of specialised property types to match the final code
-
-Representative commits: [`f6784016`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/f67840161ebb5e9c0fc1795f001e17e1ab916c1c), [`bb179ed5`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/bb179ed5059e930a5d5bc824a9488f42c5ca01d8), [`aaaeeb43`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/aaaeeb43518fe7561804f0d0faf49cc407f8b749), [`8c1d5e1b`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/8c1d5e1b9496c1293e5aad41855ca12ef0626678), [`a9702b62`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/a9702b6251019f9f4e80df1424758eff2e768608)
 
 ## Reflection Data Flow
 
@@ -173,7 +163,6 @@ UCLASS / USTRUCT / UENUM / UPROPERTY
 
 - The complete collaboration history and team-wide changes are available in [keonwookang0914/Jungle_Week11_Team4](https://github.com/keonwookang0914/Jungle_Week11_Team4).
 - The original repository was forked from the Week 10 project, so history before 14 May 2026 was excluded from Week 11 individual-contribution accounting.
-- The 29 commits attributed to Rocketstein during the core development period include merges and reverts; the list above therefore presents representative commits identified from messages, changed files, and the final code.
 - The final implementation was cross-checked against the design documents to distinguish completed work from follow-up plans.
 
 ---
@@ -221,8 +210,6 @@ Week 11의 핵심은 단순한 매크로 추가가 아니라 **C++ 선언 → �
 - `GENERATED_BODY`가 `StaticClass`, `StaticStruct`, 상위 타입, Registrar 접근 코드를 제공하도록 구성
 - `DisplayName`, `Category`, Min / Max / Speed, Property Flag를 생성 코드에 반영
 
-대표 커밋: [`b306f657`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/b306f657d7999f8ec58d87ed6a21be8693040d2d), [`20e1b79c`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/20e1b79ce696ce70dfcf272fbe6e4b8727ccdc11), [`ad1a23b9`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/ad1a23b9d047bfa2d8287517c332b39e1932b494)
-
 ### 2. 다형적 `FProperty`와 Schema / Instance 분리
 
 - 값 포인터를 매 접근마다 복사하던 단일 `FProperty`를 타입별 파생 클래스 구조로 전환
@@ -230,8 +217,6 @@ Week 11의 핵심은 단순한 매크로 추가가 아니라 **C++ 선언 → �
 - `ContainerPtrToValuePtr`로 객체·구조체·배열 원소의 실제 주소를 계산해 스키마 재사용 가능
 - 복사로 인한 Object Slicing을 제거하고 `Serialize` / `Deserialize`를 가상 함수 기반 타입별 동작으로 분리
 - `FArrayProperty`의 Inner Property 소유권과 재귀적 접근 구조 정리
-
-대표 커밋: [`3375dd14`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/3375dd14), [`6ee18304`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/6ee18304), [`60d02c8d`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/60d02c8d69a42be1612169ffce19353e574b9246), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
 
 ### 3. 에디터·직렬화 연동과 기존 컴포넌트 마이그레이션
 
@@ -242,8 +227,6 @@ Week 11의 핵심은 단순한 매크로 추가가 아니라 **C++ 선언 → �
 - Actor, Light, Billboard, Scene·Mesh·Movement 계열 Component의 수작업 프로퍼티 코드를 매크로 기반 등록으로 이전
 - Scene 저장기가 Non-Transient 프로퍼티만 공통 `Serialize` / `Deserialize` 경로로 처리하도록 통합
 
-대표 커밋: [`60d02c8d`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/60d02c8d69a42be1612169ffce19353e574b9246), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
-
 ### 4. `UField`·`UStruct`·`UEnum` 메타 객체 계층
 
 - 리플렉션 타입을 `UObject → UField → UStruct → UClass` 상속 구조로 정리
@@ -253,16 +236,12 @@ Week 11의 핵심은 단순한 매크로 추가가 아니라 **C++ 선언 → �
 - 정적 메타 객체를 Object Array 초기화 이후 안전하게 등록하는 Deferred Registration 흐름 연결
 - 핵심 타입의 Cast Flag를 상속해 자주 쓰는 `IsA` 검사를 빠르게 처리할 기반 마련
 
-대표 커밋: [`d43e6524`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/d43e652438ac7f6f7deffc65139c23b140f9473b), [`167e2b52`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/167e2b52506db743dfca98dd3d1d9b05926ebcc0)
-
 ### 5. 프로퍼티 수명 정책과 후속 Reflection / GC 설계
 
 - 복제 시 초기화해야 하는 값을 구분하도록 `DuplicateTransient`, `NonPIEDuplicateTransient` Flag 추가
 - `FField`, `FFieldClass`, `FFieldVariant`의 기초 타입과 문서를 추가해 경량 메타 필드 계층 실험
 - Object / Class Property, `FField` Iterator, CDO, Mark-and-Sweep GC, `UFunction`으로 이어지는 구현 순서와 의존성 정리
 - 최종 코드 기준의 Property Reflection 문서와 특수 프로퍼티 타입 동작·제약 갱신
-
-대표 커밋: [`f6784016`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/f67840161ebb5e9c0fc1795f001e17e1ab916c1c), [`bb179ed5`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/bb179ed5059e930a5d5bc824a9488f42c5ca01d8), [`aaaeeb43`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/aaaeeb43518fe7561804f0d0faf49cc407f8b749), [`8c1d5e1b`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/8c1d5e1b9496c1293e5aad41855ca12ef0626678), [`a9702b62`](https://github.com/keonwookang0914/Jungle_Week11_Team4/commit/a9702b6251019f9f4e80df1424758eff2e768608)
 
 ## 리플렉션 데이터 흐름
 
@@ -353,5 +332,4 @@ UCLASS / USTRUCT / UENUM / UPROPERTY
 
 - 전체 협업 이력과 팀 단위 변경사항은 [keonwookang0914/Jungle_Week11_Team4](https://github.com/keonwookang0914/Jungle_Week11_Team4)에서 확인할 수 있습니다.
 - 원본 저장소는 Week 10 프로젝트에서 Fork되었으므로, 2026.05.14 이전 이력은 Week 11 개인 기여 집계에서 제외했습니다.
-- 핵심 개발 기간에 Rocketstein 작성자 정보로 확인되는 29개 커밋에는 Merge·Revert가 포함되어 있어, 위 목록은 커밋 메시지와 실제 변경 파일 및 최종 코드를 함께 확인한 대표 커밋만 제시합니다.
 - 최종 코드와 설계 문서를 대조해 구현 완료 범위와 후속 계획을 구분했습니다.

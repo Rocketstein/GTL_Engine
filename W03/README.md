@@ -37,8 +37,6 @@ Building on the existing DirectX 11 engine architecture, we created an editing e
 - Updated include paths and fixed build errors after moving engine files
 - Resolved UTF-8 encoding issues affecting Korean comments and UI strings
 
-Representative commits: [`41835850`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/418358502d14077e60dd087ac49b41200fc6c123), [`e1f1079f`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/e1f1079f4bbfb67cc1863cc3e60abd2d4489b94b), [`de191bd1`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/de191bd12a93c217926db2660473bbec570f2031), [`c0310ef7`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/c0310ef730b90ffecf5f826c9851559ff7482323)
-
 ### 2. Redesign of the World and Scene Architecture
 
 - Extended `UWorld` to manage multiple `UScene` instances and the active scene through `FSceneManager`
@@ -47,16 +45,12 @@ Representative commits: [`41835850`](https://github.com/Rocketstein/Game-Tech-La
 - Connected camera, gizmo, and selection-state updates to scene creation, switching, and deletion
 - Implemented a Scene Manager window and loaded-scene selection UI
 
-Representative commits: [`331848b3`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/331848b39cfaebeb8bc052eb07477abfe3e269f3), [`9c09ad1e`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/9c09ad1e882d572ccdbd7ed8b1187d8a1d4c2eaf), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`ac7ca66a`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/ac7ca66ab748005fc378b0ef359247ee4f81dafd)
-
 ### 3. Restoring and Extending Scene Save/Load
 
 - Restored the existing JSON save/load functionality for the refactored world and scene architecture
 - Serialised scenes, actors, and components by UUID, then reconnected parent, root-component, and owning-scene relationships after loading
 - Added `.Scene` save/load support through file dialogs and prevented duplicate UUIDs
 - Fixed stale viewport and gizmo references to objects from the previous scene after switching scenes
-
-Representative commits: [`331848b3`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/331848b39cfaebeb8bc052eb07477abfe3e269f3), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3)
 
 ### 4. Billboard and Spotlight Foundations
 
@@ -67,14 +61,10 @@ Representative commits: [`331848b3`](https://github.com/Rocketstein/Game-Tech-La
 - Added real-time ImGui editing for the selected spotlight's direction, size, vertex count, and colour
 - Integrated spotlight icons with render collection, mesh buffers, and scene saving
 
-Representative commits: [`eb35897c`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/eb35897c08b5f2ebf35ee2dde47b16928de54b91), [`bff8cb6f`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/bff8cb6f0142d25ff34c5e7196781250d15d9042), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3)
-
 ### 5. Integration Stabilisation and Follow-up Fixes
 
 - Fixed SubUV shadowing that incorrectly hid effects behind unrelated objects, as well as texture restoration after scene loading
 - Cleaned up naming and reference relationships across scenes, actors, and the object factory
-
-Representative commits: [`28e5c81c`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/28e5c81c5132f9b7290fd195e0179f2c33fe110c), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3), [`d51f10e7`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/d51f10e76d0fdfbec9008bab15671fc3aa7f3d6a), [`1b3ef804`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/1b3ef80432532ffa839872a0931868e242a555a1)
 
 ## Controls
 
@@ -167,8 +157,6 @@ The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
 - 이동된 엔진 파일에 맞춰 Include 경로와 빌드 오류 수정
 - 한글 주석과 UI 문자열을 위한 UTF-8 인코딩 문제 정리
 
-대표 커밋: [`41835850`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/418358502d14077e60dd087ac49b41200fc6c123), [`e1f1079f`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/e1f1079f4bbfb67cc1863cc3e60abd2d4489b94b), [`de191bd1`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/de191bd12a93c217926db2660473bbec570f2031), [`c0310ef7`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/c0310ef730b90ffecf5f826c9851559ff7482323)
-
 ### 2. World·Scene 구조 재설계
 
 - `UWorld`가 `FSceneManager`를 통해 여러 `UScene`과 Active Scene을 관리하도록 구조 확장
@@ -177,16 +165,12 @@ The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
 - Scene 생성, 전환, 삭제 시 카메라·기즈모·선택 상태가 함께 갱신되도록 연결
 - Scene Manager 창과 Loaded Scene 선택 UI 구현
 
-대표 커밋: [`331848b3`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/331848b39cfaebeb8bc052eb07477abfe3e269f3), [`9c09ad1e`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/9c09ad1e882d572ccdbd7ed8b1187d8a1d4c2eaf), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`ac7ca66a`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/ac7ca66ab748005fc378b0ef359247ee4f81dafd)
-
 ### 3. 씬 저장·불러오기 복구 및 확장
 
 - 리팩터링된 World·Scene 구조에 맞춰 기존 JSON 저장·불러오기 기능 복구
 - Scene, Actor, Component를 UUID로 직렬화하고 로드 후 부모·Root Component·소유 Scene 관계를 재연결
 - 파일 대화상자를 통한 `.Scene` 저장·불러오기와 중복 UUID 방지 처리
 - 씬 전환 후 뷰포트와 기즈모가 이전 씬 객체를 계속 참조하는 문제 수정
-
-대표 커밋: [`331848b3`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/331848b39cfaebeb8bc052eb07477abfe3e269f3), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3)
 
 ### 4. Billboard·Spotlight 기반 구현
 
@@ -197,14 +181,10 @@ The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
 - 선택한 Spotlight의 방향, 크기, 정점 수, 색상을 ImGui에서 실시간 편집하도록 구현
 - Spotlight 아이콘과 렌더 수집·메시 버퍼·저장 시스템 연동
 
-대표 커밋: [`eb35897c`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/eb35897c08b5f2ebf35ee2dde47b16928de54b91), [`bff8cb6f`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/bff8cb6f0142d25ff34c5e7196781250d15d9042), [`f9f74aed`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/f9f74aed0bee6d993514bb302739dd9936807e31), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3)
-
 ### 5. 통합 안정화와 후속 수정
 
 - SubUV가 다른 객체 뒤에서 잘못 가려지는 Shadowing 문제와 씬 로드 후 텍스처 복원 문제 수정
 - Scene·Actor·Object Factory 전반의 명명과 참조 관계 정리
-
-대표 커밋: [`28e5c81c`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/28e5c81c5132f9b7290fd195e0179f2c33fe110c), [`badc62ca`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/badc62ca5e7f5292c5847fc075b67d54d93636c3), [`d51f10e7`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/d51f10e76d0fdfbec9008bab15671fc3aa7f3d6a), [`1b3ef804`](https://github.com/Rocketstein/Game-Tech-Lab-W3/commit/1b3ef80432532ffa839872a0931868e242a555a1)
 
 ## 조작 방법
 
@@ -255,4 +235,3 @@ ImGui의 **Jungle Control Panel**에서는 Scene, Camera, Gizmo, View Mode를 �
 
 - 전체 협업 이력과 팀 단위 변경사항은 [Rocketstein/Game-Tech-Lab-W3](https://github.com/Rocketstein/Game-Tech-Lab-W3)에서 확인할 수 있습니다.
 - 이 README의 개인 기여 내역은 원본 저장소의 작성자 정보, 커밋 메시지 및 실제 변경 파일을 함께 확인해 정리했습니다.
-

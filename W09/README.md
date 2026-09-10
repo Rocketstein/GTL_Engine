@@ -39,8 +39,6 @@ Rather than merely adding isolated engine features, Week 9 connected C++ collisi
 - Registered Box–Box, Box–Sphere, Box–Capsule, Sphere–Sphere, Sphere–Capsule, and Capsule–Capsule tests with `FCollisionDispatcher`
 - Connected world-level overlap updates to Component begin/end overlap events and removed redundant pair checks
 
-Representative commits: [`2842d1ed`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2842d1edb221c0baaf94ebab0ccf2ed580a9c50c), [`2ec0064e`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2ec0064e0184b82d72014660c1fc7fc4ecaa6eb2), [`5578f8c6`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/5578f8c6f0e9474479dc13d281ba00f21f1e0352)
-
 ### 2. Procedural Map Chunks and Obstacles
 
 - Implemented a runtime recycling system in which `AMapManager` maintains the active chunk count ahead of the player and removes chunks that have been passed
@@ -50,16 +48,12 @@ Representative commits: [`2842d1ed`](https://github.com/Rocketstein/Jungle_Week9
 - Randomly selected normal or bugged floor materials to add visual variation during a run
 - Fixed chunks being removed too early after the player crossed an exit and adjusted the length of the starting section
 
-Representative commits: [`e86152b4`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/e86152b481f1f573f731787f34ee67bd13b58807), [`c58db0a2`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c58db0a2f0ea6f1a6d99e62a219005e1babebf73), [`07ddd1c6`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/07ddd1c6926774b47eacfde11083f2f431858aaa), [`cefd40ef`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/cefd40eff248df1f629f7902f9b681dfccd14d83), [`e2ebd9a9`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/e2ebd9a9849d809e349fa7cb43211833dfb5e457), [`69aafb54`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/69aafb54eadacc858bbc5d1fff207413db5556fe)
-
 ### 3. Imposter Gizmo Mechanic
 
 - Built `FGimmickManager`, which selects a random obstacle target and chooses a translation, rotation, or scale effect
 - Implemented a fake editor-style gizmo that captures an obstacle at runtime and transforms it after a delay
 - Preserved and restored the target's selection-outline state and safely released it if the target was destroyed first
 - Tuned activation delay, spawn probability, and target-selection range to create sudden obstacle transformations during play
-
-Representative commits: [`b7f9ab0b`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/b7f9ab0b2e7ccf04d7ad42cbf802dd4cbc31b682), [`4f47b5c7`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/4f47b5c73f46c3c7d29b3fea2b78def2ed5e73eb), [`d33fb2b8`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/d33fb2b8f3cba83908194739d88d93c0c2b47bf5)
 
 ### 4. Player Camera Manager and Final POV Path
 
@@ -69,8 +63,6 @@ Representative commits: [`b7f9ab0b`](https://github.com/Rocketstein/Jungle_Week9
 - Connected final-POV delivery across Game Mode, Camera Components, Frame Context, and editor/default render pipelines
 - Fixed missing ticks, shadowed disabled defaults, null access, and double destruction of UObjects
 
-Representative commits: [`fac04d55`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/fac04d55fb39298c5ac5742edb784b3a19646a3d), [`4db5ea78`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/4db5ea78cb5b481856e952a80cbf1fc7eb1bc426), [`7776b012`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/7776b012b1dac32a85d76d841f0b7e36344956fd), [`548c3ed5`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/548c3ed522ae8ae4a9f707a502f4c4cdda12f5c7), [`2881f358`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2881f35864d2558df16ff4a2e2aa2255824aed1c), [`43507b08`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/43507b08be71a58b28e69ff4fa7f4ec07948e01f)
-
 ### 5. Camera Modifiers, Shake, and Fade
 
 - Implemented modifier fade-in/fade-out alpha, pending-disable state, and priority handling across the effect lifetime
@@ -78,8 +70,6 @@ Representative commits: [`fac04d55`](https://github.com/Rocketstein/Jungle_Week9
 - Accumulated location and rotation offsets from sine-wave and curve-based shake patterns into the final POV
 - Clarified ownership and destruction between camera-shake patterns and their internal curve UObjects, preventing leaks and double frees
 - Passed fade colour, start/end alpha, and duration into camera post-process values
-
-Representative commits: [`8f2f1d5c`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/8f2f1d5c1e67b774e4bf06261ed99d2f5da8ecac), [`df004263`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/df004263adacd8ee41775fd397d63c5fe8c6d635), [`6020184e`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/6020184e4dd6a761349df1140b056ebcca52b4f5), [`56974f6f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/56974f6f95f3d684bc6d97d64c5970f27e35e822), [`c010b37f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c010b37f68e3b5020c120513c0d12399d844bb11)
 
 ## Game-Runtime Architecture
 
@@ -181,8 +171,6 @@ The project uses `directxtk_desktop_win10` and `luajit.native` through NuGet.
 
 - The complete collaboration history and team-wide changes are available in [Rocketstein/Jungle_Week9_Team6](https://github.com/Rocketstein/Jungle_Week9_Team6).
 - The original repository was forked from Week 8, so history before 30 April 2026 was excluded from the Week 9 individual-contribution accounting.
-- The 84 commits attributed to Rocketstein during the core development period include merges and checkpoints; the list above therefore presents representative commits identified from messages, changed files, and the final code.
-- Subsequent asset-restoration commits: [`c751f11f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c751f11f828df289ec9e9bc37d08a0ec26dfbc33), [`76f5df27`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/76f5df27688ac872105712e776fcf95c1ed58802)
 
 ---
 
@@ -227,8 +215,6 @@ Week 9에서는 엔진 기능을 단순히 추가하는 데 그치지 않고, C+
 - `FCollisionDispatcher`에 Box–Box, Box–Sphere, Box–Capsule, Sphere–Sphere, Sphere–Capsule, Capsule–Capsule 판정 등록
 - World 단위 Overlap 갱신과 Component Begin / End Overlap 흐름을 연결하고 불필요한 중복 비교 제거
 
-대표 커밋: [`2842d1ed`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2842d1edb221c0baaf94ebab0ccf2ed580a9c50c), [`2ec0064e`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2ec0064e0184b82d72014660c1fc7fc4ecaa6eb2), [`5578f8c6`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/5578f8c6f0e9474479dc13d281ba00f21f1e0352)
-
 ### 2. 절차적 Map Chunk와 장애물 시스템
 
 - `AMapManager`가 플레이어 전방의 Active Chunk 수를 유지하고 통과한 선두 Chunk를 회수하도록 런타임 순환 구조 구현
@@ -238,16 +224,12 @@ Week 9에서는 엔진 기능을 단순히 추가하는 데 그치지 않고, C+
 - 일반 / Bugged 바닥 Material을 확률적으로 선택해 주행 중 시각적 변주 제공
 - 플레이어가 Chunk 출구를 지난 뒤 너무 일찍 제거되던 문제와 시작 구간 길이 조정
 
-대표 커밋: [`e86152b4`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/e86152b481f1f573f731787f34ee67bd13b58807), [`c58db0a2`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c58db0a2f0ea6f1a6d99e62a219005e1babebf73), [`07ddd1c6`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/07ddd1c6926774b47eacfde11083f2f431858aaa), [`cefd40ef`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/cefd40eff248df1f629f7902f9b681dfccd14d83), [`e2ebd9a9`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/e2ebd9a9849d809e349fa7cb43211833dfb5e457), [`69aafb54`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/69aafb54eadacc858bbc5d1fff207413db5556fe)
-
 ### 3. Imposter Gizmo 기믹
 
 - 장애물을 무작위 Target으로 선택하는 `FGimmickManager`와 Translate / Rotation / Scale 기믹 선택 흐름 구성
 - 런타임에서 Editor Gizmo처럼 보이는 가짜 기즈모가 장애물을 Capture하고 일정 지연 후 Transform을 수행하도록 구현
 - Capture 대상의 선택 Outline 상태를 저장·복구하고 Target이 먼저 파괴된 경우 안전하게 Release
 - 활성화 지연, 기믹 생성 확률과 대상 선택 범위를 조정해 플레이 중 갑작스러운 장애물 변형을 연출
-
-대표 커밋: [`b7f9ab0b`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/b7f9ab0b2e7ccf04d7ad42cbf802dd4cbc31b682), [`4f47b5c7`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/4f47b5c73f46c3c7d29b3fea2b78def2ed5e73eb), [`d33fb2b8`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/d33fb2b8f3cba83908194739d88d93c0c2b47bf5)
 
 ### 4. Player Camera Manager와 최종 POV 경로
 
@@ -257,8 +239,6 @@ Week 9에서는 엔진 기능을 단순히 추가하는 데 그치지 않고, C+
 - Game Mode와 Camera Component, Frame Context, Editor / Default Render Pipeline 사이에 최종 POV 전달 경로 연결
 - Tick 누락, 비활성화 기본값 Shadowing, Null 접근과 UObject 이중 소멸 문제 수정
 
-대표 커밋: [`fac04d55`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/fac04d55fb39298c5ac5742edb784b3a19646a3d), [`4db5ea78`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/4db5ea78cb5b481856e952a80cbf1fc7eb1bc426), [`7776b012`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/7776b012b1dac32a85d76d841f0b7e36344956fd), [`548c3ed5`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/548c3ed522ae8ae4a9f707a502f4c4cdda12f5c7), [`2881f358`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/2881f35864d2558df16ff4a2e2aa2255824aed1c), [`43507b08`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/43507b08be71a58b28e69ff4fa7f4ec07948e01f)
-
 ### 5. Camera Modifier·Shake·Fade
 
 - Modifier의 Alpha In / Out, Pending Disable과 Priority 처리로 효과의 진입·종료 수명주기 구현
@@ -266,8 +246,6 @@ Week 9에서는 엔진 기능을 단순히 추가하는 데 그치지 않고, C+
 - Sin Wave와 Curve 기반 Shake Pattern이 Location / Rotation Offset을 최종 POV에 누적하도록 구성
 - Camera Shake Pattern과 내부 Curve UObject의 소유·소멸 관계를 정리해 누수와 이중 해제를 방지
 - Fade 색상·시작/종료 Alpha·Duration을 Camera Post Process 값으로 전달
-
-대표 커밋: [`8f2f1d5c`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/8f2f1d5c1e67b774e4bf06261ed99d2f5da8ecac), [`df004263`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/df004263adacd8ee41775fd397d63c5fe8c6d635), [`6020184e`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/6020184e4dd6a761349df1140b056ebcca52b4f5), [`56974f6f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/56974f6f95f3d684bc6d97d64c5970f27e35e822), [`c010b37f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c010b37f68e3b5020c120513c0d12399d844bb11)
 
 ## 게임 런타임 구조
 
@@ -369,5 +347,3 @@ NuGet으로 `directxtk_desktop_win10`과 `luajit.native`를 사용합니다.
 
 - 전체 협업 이력과 팀 단위 변경사항은 [Rocketstein/Jungle_Week9_Team6](https://github.com/Rocketstein/Jungle_Week9_Team6)에서 확인할 수 있습니다.
 - 원본은 Week 8 저장소에서 Fork되었으므로 2026.04.30 이전 이력은 Week 9 개인 기여 집계에서 제외했습니다.
-- 핵심 개발 기간에 Rocketstein 작성자 정보로 기록된 84개 커밋에는 Merge·Checkpoint가 포함되어 있어, 위 목록은 메시지와 실제 변경 파일 및 최종 코드를 함께 확인한 대표 커밋만 제시합니다.
-- 후속 자산 복구 커밋: [`c751f11f`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/c751f11f828df289ec9e9bc37d08a0ec26dfbc33), [`76f5df27`](https://github.com/Rocketstein/Jungle_Week9_Team6/commit/76f5df27688ac872105712e776fcf95c1ed58802)

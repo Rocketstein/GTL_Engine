@@ -40,8 +40,6 @@ Building on the Week 6 editor and multipass renderer, we extended the forward-re
 - Connected material binding to selection of the active lighting-model permutation through the Renderer → Render Pass → Material path
 - Added runtime lighting-model selection to each viewport's ImGui menu
 
-Representative commits: [`e3138041`](https://github.com/Rocketstein/Nips_W7/commit/e31380418af9e61a277f55a0ca89229e109df477), [`61db3da1`](https://github.com/Rocketstein/Nips_W7/commit/61db3da1b39efd9eb5cde7f2e832b390de50dd40), [`9568e430`](https://github.com/Rocketstein/Nips_W7/commit/9568e4305c25d953addc548e3825975aed74137f), [`5b3628be`](https://github.com/Rocketstein/Nips_W7/commit/5b3628bee712b7965c83d8665fbff7d3d32361c8)
-
 ### 2. Tangent Space and the Normal-Mapping Pipeline
 
 - Calculated tangents and bitangents from OBJ triangle position and UV deltas, accumulating them per vertex
@@ -50,8 +48,6 @@ Representative commits: [`e3138041`](https://github.com/Rocketstein/Nips_W7/comm
 - Fixed case-sensitivity and option parsing for MTL `map_Bump`, then connected normal textures to material parameters
 - Implemented a pixel-shader path that transforms tangent-space normals into world space with a TBN matrix
 - Fixed a shader-compilation failure in the Gouraud + Normal Map combination caused by an unused pixel tangent
-
-Representative commits: [`92dc9076`](https://github.com/Rocketstein/Nips_W7/commit/92dc90760b08cfc8ba4439f6fe8fe5b752c2867e), [`fc946f42`](https://github.com/Rocketstein/Nips_W7/commit/fc946f4297efdd746887e390833d277ad3006317), [`44eb564e`](https://github.com/Rocketstein/Nips_W7/commit/44eb564ed49d435c68ca419d6344e3483f55eea6), [`62e62da8`](https://github.com/Rocketstein/Nips_W7/commit/62e62da87395284c86407e6463f7502998d2cca6)
 
 ### 3. Depth Prepass and Tiled Light Culling
 
@@ -62,8 +58,6 @@ Representative commits: [`92dc9076`](https://github.com/Rocketstein/Nips_W7/comm
 - Inserted `LightCullingPass` into the rendering pipeline and consumed its output SRVs in the `UberLit` pixel shader
 - Fixed SRV/UAV read-write conflicts and buffer-sizing issues between compute and pixel shaders
 
-Representative commits: [`ce555b49`](https://github.com/Rocketstein/Nips_W7/commit/ce555b4962d64f5911f065add31bcdc5bead68e3), [`a6d717ab`](https://github.com/Rocketstein/Nips_W7/commit/a6d717abff3d6d27fdb0d0caac4c2a88a49a6f39), [`c397e7ff`](https://github.com/Rocketstein/Nips_W7/commit/c397e7ffd127f4c88beee904db86f6f5b68467cc), [`18ebfd93`](https://github.com/Rocketstein/Nips_W7/commit/18ebfd937cdb2a9fadae1967a8458aad39c4a6d2), [`7f7e263c`](https://github.com/Rocketstein/Nips_W7/commit/7f7e263cd76bb0f2fce31ac07a356fd0145b0d72), [`9d44f10c`](https://github.com/Rocketstein/Nips_W7/commit/9d44f10c1ab3a7d89ed7ee0b0c2235cc684c7638)
-
 ### 4. Clustered Light Culling and Culling-Quality Improvements
 
 - Extended 2D tiles into 3D clusters using 24 logarithmic depth slices
@@ -73,8 +67,6 @@ Representative commits: [`ce555b49`](https://github.com/Rocketstein/Nips_W7/comm
 - Ranked candidate lights beyond the 128-light cluster limit by colour magnitude, intensity, radius, and camera distance
 - Reduced light flickering caused by parallel collection order by using deterministic priority selection
 
-Representative commits: [`40d799ed`](https://github.com/Rocketstein/Nips_W7/commit/40d799ed7b6fd05e7679f5de519f0a7ebeb5f03f), [`edfbaf27`](https://github.com/Rocketstein/Nips_W7/commit/edfbaf27a82bd1c5a026bf9857e8c2b7a78fdccf), [`37d13afe`](https://github.com/Rocketstein/Nips_W7/commit/37d13afe27bae8c832ecaad11da91ef72cfb4155)
-
 ### 5. Decal Integration and Rendering Stabilisation
 
 - Analysed and fixed incorrect background overwrites caused by simple draw order and alpha handling when multiple decals overlapped
@@ -83,8 +75,6 @@ Representative commits: [`40d799ed`](https://github.com/Rocketstein/Nips_W7/comm
 - Removed duplicate decal commands and consolidated shared light/decal constants into `UberConstants`
 - Fixed constant-buffer packing, SRV register collisions, and wireframe rasteriser-state leakage
 - Corrected shader and GPU-resource lifetime issues in `ResourceManager` and fixed wireframe output problems
-
-Representative commits: [`2ddd02a1`](https://github.com/Rocketstein/Nips_W7/commit/2ddd02a110b59a111c4b65e467860e4b79bb9eac), [`d7cfb31b`](https://github.com/Rocketstein/Nips_W7/commit/d7cfb31b2502ae26984219cc613893cb7b75c9cd), [`2b67b4cb`](https://github.com/Rocketstein/Nips_W7/commit/2b67b4cb6ec4040fbb5e888aaed4bfdab49ca5db), [`f434c33a`](https://github.com/Rocketstein/Nips_W7/commit/f434c33a71319e8c06c137fe3918d78181caffa9), [`53252e98`](https://github.com/Rocketstein/Nips_W7/commit/53252e98332c83855e37aaf6872d7758c0924389), [`690240ff`](https://github.com/Rocketstein/Nips_W7/commit/690240ff93deae116c63c2e27c68e312a6b884b7)
 
 ## Rendering Architecture
 
@@ -251,8 +241,6 @@ Week 6에서 이어진 에디터·멀티패스 렌더러를 기반으로, 여러
 - Material Bind 시 현재 라이팅 모델의 Permutation을 선택하도록 Renderer → Render Pass → Material 흐름 구성
 - 각 뷰포트의 메뉴에서 라이팅 모델을 런타임에 전환하도록 ImGui UI 연동
 
-대표 커밋: [`e3138041`](https://github.com/Rocketstein/Nips_W7/commit/e31380418af9e61a277f55a0ca89229e109df477), [`61db3da1`](https://github.com/Rocketstein/Nips_W7/commit/61db3da1b39efd9eb5cde7f2e832b390de50dd40), [`9568e430`](https://github.com/Rocketstein/Nips_W7/commit/9568e4305c25d953addc548e3825975aed74137f), [`5b3628be`](https://github.com/Rocketstein/Nips_W7/commit/5b3628bee712b7965c83d8665fbff7d3d32361c8)
-
 ### 2. Tangent Space와 Normal Mapping 파이프라인
 
 - OBJ Triangle의 위치·UV 변화량으로 Tangent / Bitangent를 계산하고 Vertex별로 누적
@@ -261,8 +249,6 @@ Week 6에서 이어진 에디터·멀티패스 렌더러를 기반으로, 여러
 - MTL의 `map_Bump` 대소문자와 옵션 처리 문제를 수정하고 Normal Texture를 Material Parameter로 연동
 - TBN Matrix로 Tangent-space Normal을 World-space로 변환하는 Pixel Shader 경로 구현
 - Gouraud + Normal Map 조합에서 사용되지 않는 Pixel Tangent 때문에 셰이더가 컴파일되지 않던 문제 수정
-
-대표 커밋: [`92dc9076`](https://github.com/Rocketstein/Nips_W7/commit/92dc90760b08cfc8ba4439f6fe8fe5b752c2867e), [`fc946f42`](https://github.com/Rocketstein/Nips_W7/commit/fc946f4297efdd746887e390833d277ad3006317), [`44eb564e`](https://github.com/Rocketstein/Nips_W7/commit/44eb564ed49d435c68ca419d6344e3483f55eea6), [`62e62da8`](https://github.com/Rocketstein/Nips_W7/commit/62e62da87395284c86407e6463f7502998d2cca6)
 
 ### 3. Depth Prepass와 Tiled Light Culling
 
@@ -273,8 +259,6 @@ Week 6에서 이어진 에디터·멀티패스 렌더러를 기반으로, 여러
 - `LightCullingPass`를 렌더 파이프라인에 배치하고 결과 SRV를 `UberLit` Pixel Shader에서 소비하도록 연결
 - Compute / Pixel Shader 사이의 SRV·UAV Read/Write 충돌과 Buffer 크기 문제 수정
 
-대표 커밋: [`ce555b49`](https://github.com/Rocketstein/Nips_W7/commit/ce555b4962d64f5911f065add31bcdc5bead68e3), [`a6d717ab`](https://github.com/Rocketstein/Nips_W7/commit/a6d717abff3d6d27fdb0d0caac4c2a88a49a6f39), [`c397e7ff`](https://github.com/Rocketstein/Nips_W7/commit/c397e7ffd127f4c88beee904db86f6f5b68467cc), [`18ebfd93`](https://github.com/Rocketstein/Nips_W7/commit/18ebfd937cdb2a9fadae1967a8458aad39c4a6d2), [`7f7e263c`](https://github.com/Rocketstein/Nips_W7/commit/7f7e263cd76bb0f2fce31ac07a356fd0145b0d72), [`9d44f10c`](https://github.com/Rocketstein/Nips_W7/commit/9d44f10c1ab3a7d89ed7ee0b0c2235cc684c7638)
-
 ### 4. Clustered Light Culling과 컬링 품질 개선
 
 - 2D Tile을 24개의 로그 깊이 Slice로 확장해 3D Cluster 단위로 광원을 분류
@@ -284,8 +268,6 @@ Week 6에서 이어진 에디터·멀티패스 렌더러를 기반으로, 여러
 - Cluster당 최대 128개를 초과한 후보를 Color 크기·Intensity·Radius·카메라 거리 기반 중요도로 정렬
 - 병렬 수집 순서에 따라 선택 광원이 바뀌며 발생하던 Light Flicker를 결정적인 우선순위 선택으로 완화
 
-대표 커밋: [`40d799ed`](https://github.com/Rocketstein/Nips_W7/commit/40d799ed7b6fd05e7679f5de519f0a7ebeb5f03f), [`edfbaf27`](https://github.com/Rocketstein/Nips_W7/commit/edfbaf27a82bd1c5a026bf9857e8c2b7a78fdccf), [`37d13afe`](https://github.com/Rocketstein/Nips_W7/commit/37d13afe27bae8c832ecaad11da91ef72cfb4155)
-
 ### 5. Decal 통합과 렌더링 안정화
 
 - 여러 Decal이 겹칠 때 단순 Draw 순서와 Alpha 때문에 배경이 잘못 덮이는 문제 분석·수정
@@ -294,8 +276,6 @@ Week 6에서 이어진 에디터·멀티패스 렌더러를 기반으로, 여러
 - 중복 Decal Command를 걸러내고 Light / Decal 공용 상수 데이터를 `UberConstants`로 정리
 - Constant Buffer Packing, SRV Register 충돌, Wireframe Rasterizer 상태 오염 문제 수정
 - `ResourceManager`의 Shader·GPU Resource 수명주기와 Wireframe 출력 오류 보정
-
-대표 커밋: [`2ddd02a1`](https://github.com/Rocketstein/Nips_W7/commit/2ddd02a110b59a111c4b65e467860e4b79bb9eac), [`d7cfb31b`](https://github.com/Rocketstein/Nips_W7/commit/d7cfb31b2502ae26984219cc613893cb7b75c9cd), [`2b67b4cb`](https://github.com/Rocketstein/Nips_W7/commit/2b67b4cb6ec4040fbb5e888aaed4bfdab49ca5db), [`f434c33a`](https://github.com/Rocketstein/Nips_W7/commit/f434c33a71319e8c06c137fe3918d78181caffa9), [`53252e98`](https://github.com/Rocketstein/Nips_W7/commit/53252e98332c83855e37aaf6872d7758c0924389), [`690240ff`](https://github.com/Rocketstein/Nips_W7/commit/690240ff93deae116c63c2e27c68e312a6b884b7)
 
 ## 렌더링 구조
 
