@@ -1,3 +1,208 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 6 — Nips Engine
+
+> A project extending a DirectX 11 multipass renderer and editor/PIE input architecture with dynamic lighting and path-following movement components.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original collaborative project](https://github.com/jskim-research/Jungle_Week6_Team4).
+
+## Project Overview
+
+Building on the editor and rendering engine developed in previous weeks, we extended the architecture to support playable sessions and more complex rendering effects. Week 6 separated Editor World and PIE (Play In Editor) input, introduced a G-buffer-based light pass and fireball lights, and integrated control-point movement and camera-pursuit components with the editor and serialisation workflow.
+
+At team level, the project also integrated decals, height fog, FXAA, dynamic BVH and frustum culling, LOD, material instances, and a PIE world.
+
+- **Development period:** 9–15 April 2026
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, HLSL, Dear ImGui, JSON
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- Separate input and camera control for Editor World and PIE states
+- Multipass rendering using colour, normal, depth, and world-position G-buffers
+- Multiple point lights evaluated through a Structured Buffer
+- Fireball Actor combining an emissive mesh with a dynamic light
+- Decal volume projection with fade-in and fade-out
+- Height-fog post-processing with up to eight layers
+- FXAA, selection outlines, and Lit/Unlit/Wireframe view modes
+- Control-point-based `InterpToMovementComponent`
+- Camera-following `PursuitMovementComponent`
+- Dynamic-BVH-based picking and frustum culling, with static-mesh LOD
+- ImGui property panels and JSON scene save/restore
+- Up to four perspective or orthographic editor viewports
+
+## My Contributions
+
+### 1. Editor / PIE Input-Controller Architecture
+
+- Split input handling into the `IBaseEditorController` interface and `FEditorInputRouter`
+- Assigned edit-mode selection, gizmo, and camera input to `FEditorWorldController`, and play-mode input to `FPIEController`
+- Connected active controller, world, and camera-target switching to PIE start and stop events
+- Routed keyboard press/hold/release and mouse movement, click, drag, and wheel events through a shared input router
+- Fixed incorrect yaw/pitch jumps when entering PIE and residual camera impulses after controller switches
+- Left the cursor unconfined in the editor except during right-mouse dragging, while allowing PIE sessions to exit with `Esc`
+- Extracted ray–AABB, ray–triangle, and component raycasts into the reusable `FRayCollision` utility
+
+Representative commits: [`5b4f6c3c`](https://github.com/Rocketstein/Nips_W7/commit/5b4f6c3cfec57afd8c3d32a404b465305442ae4c), [`a9348573`](https://github.com/Rocketstein/Nips_W7/commit/a9348573511484520643200c438782487a3d838d), [`c12b0871`](https://github.com/Rocketstein/Nips_W7/commit/c12b0871a7bf33c22743312bc0ba96cecb022a35)
+
+### 2. Fireball and Multipass Dynamic Lighting
+
+- Added `AFireballActor` and `UFireballComponent`, exposing editable radius, falloff, intensity, and colour properties
+- Collected fireball data through `RenderCollector`, converted it into an `FLightData` array, and uploaded it through a GPU Structured Buffer
+- Implemented a fullscreen light pass that calculates light direction, distance attenuation, and the Lambert term from G-buffer world position and normals
+- Accumulated contributions from multiple lights and added global ambient lighting to the final colour path
+- Added emissive colour to static-mesh constant buffers and allowed emissive surfaces to bypass the light pass
+- Connected Lit, Unlit, and Wireframe modes to global-lighting behaviour in the light pass
+- Fixed HLSL/C++ constant-buffer alignment, GPU padding, SRV unbinding, and default-culling issues
+
+Representative commits: [`7cbf3edc`](https://github.com/Rocketstein/Nips_W7/commit/7cbf3edc5b2de27504b3d23ae716aa0c43c6c14e), [`492cffc7`](https://github.com/Rocketstein/Nips_W7/commit/492cffc738d97ae5ab0041bd265f3386fe614603), [`3a9dbc92`](https://github.com/Rocketstein/Nips_W7/commit/3a9dbc92ed83a8a1d38e55e7a3c0f385bae9d802), [`322dd78b`](https://github.com/Rocketstein/Nips_W7/commit/322dd78ba3bbe25050402be50bb1a27e6a02b6b1)
+
+### 3. Control-Point-Based InterpTo Movement
+
+- Implemented `UInterpToMovementComponent` to move along multiple `FVector` control points
+- Calculated each segment's interpolation duration from its proportion of total path length, reducing speed variation
+- Added four playback modes: `OneShot`, `OneShotReverse`, `Loop`, and `PingPong`
+- Calculated movement-facing rotation with quaternions and applied `Slerp` for smooth orientation changes along the path
+- Added editor UI for adding, deleting, and editing control points, together with Initiate, Stop, and Reset operations
+- Added `Vec3Array` and `Enum` property types and connected them to duplication and JSON save/restore
+- Allowed control points to be edited in Actor-local space before converting them to world space when PIE begins
+
+Representative commits: [`57e31d26`](https://github.com/Rocketstein/Nips_W7/commit/57e31d26458a8935a4e037f45c7dfce2f5795da5), [`7abd2265`](https://github.com/Rocketstein/Nips_W7/commit/7abd2265fc04db40b7d4976a5af61daa7871b571)
+
+### 4. Pursuit Movement and Camera Tracking
+
+- Implemented `UPursuitMovementComponent`, which periodically updates a target position and interpolates towards it
+- Exposed detection radius, pursuit speed, update interval, and target-facing rotation through the property panel
+- Calculated target yaw and pitch and smoothly interpolated orientation during movement
+- Configured the component to track the primary perspective `FViewportCamera` automatically when no explicit target exists at PIE start
+- Registered the component with the component factory and copied configuration while resetting runtime state during duplication
+
+Representative commits: [`9d24aafc`](https://github.com/Rocketstein/Nips_W7/commit/9d24aafca41a9b20c5ae1d38014e702115ca6c37), [`143b079b`](https://github.com/Rocketstein/Nips_W7/commit/143b079b3aa00243070d31a1221cf687292effde), [`94240d55`](https://github.com/Rocketstein/Nips_W7/commit/94240d55838a9d070ddf1193b9d6fe1a50fffbdc)
+
+### 5. Property, Serialisation, and Integration Stabilisation
+
+- Added `EPropertyType::Color` and connected ImGui `ColorEdit4` to fireball-property editing
+- Serialised and restored colour values in JSON and preserved colour when duplicating fireballs
+- Corrected C++/HLSL data layouts in the light pass and fixed static-mesh emissive-texture propagation
+- Prepared fireball meshes/materials and a basic spotlight placement demo, and connected them to the editor spawn list
+- Fixed integration issues discovered during demonstrations, including PIE camera flight, InterpTo local points, and fireball culling
+
+Representative commits: [`de1fc29d`](https://github.com/Rocketstein/Nips_W7/commit/de1fc29da31555bc51fddcb3c7962eb7f7551584), [`aad7468d`](https://github.com/Rocketstein/Nips_W7/commit/aad7468daee2b11b7a0c63755ceb037ffaad01c7), [`9b1e9791`](https://github.com/Rocketstein/Nips_W7/commit/9b1e9791030225f3c0b3bb4abe34a52ca70b2803), [`f7f5f057`](https://github.com/Rocketstein/Nips_W7/commit/f7f5f0572e16536f986e01079d03203fb301f8a8)
+
+## Engine Execution Flow
+
+```text
+Windows Input
+      │
+      ▼
+ InputSystem
+      │
+      ▼
+FEditorInputRouter
+      ├──────── Editor World ────────┐
+      │    Camera / Picking / Gizmo  │
+      └──────── PIE Controller ──────┤
+             Play Camera / Exit      │
+                                     ▼
+                         World / Actor / Component
+                              │             │
+                    Movement Components    │
+                 InterpTo / Pursuit        │
+                              │             ▼
+                              └──── RenderCollector
+                                            │
+                                            ▼
+                                         RenderBus
+                                            │
+        G-Buffer Opaque ──► Light Pass ──► Fog / FXAA
+             Colour · Normal · Depth · World Position
+```
+
+### Fireball-Light Path
+
+```text
+UFireballComponent
+Radius · Falloff · Intensity · Colour
+                 │
+                 ▼
+          FLightData Array
+                 │
+                 ▼
+     GPU Structured Buffer
+                 │
+                 ▼
+Fullscreen LightPass.hlsl
+G-buffer reconstruction → distance attenuation → N·L → light accumulation
+```
+
+## Project Structure
+
+```text
+.
+├─ FEATURE_GUIDE.md
+├─ NipsEngine.sln
+├─ NipsEngine/
+│  ├─ Asset/                         # Meshes, materials, textures, scenes
+│  ├─ Settings/                      # Editor settings
+│  ├─ Shaders/
+│  │  ├─ Multipass/                  # Lighting, fog, FXAA
+│  │  ├─ ShaderDecal.hlsl
+│  │  └─ Selection / Outline Shader
+│  └─ Source/
+│     ├─ Editor/                     # Editor engine, viewport, property UI
+│     └─ Engine/
+│        ├─ Component/Movement/      # InterpTo, Pursuit, Projectile, Rotating
+│        ├─ Input/Controller/        # Editor / PIE input controllers
+│        ├─ Render/                  # Collector, bus, render passes, resources
+│        ├─ Spatial/                 # Dynamic BVH and world spatial index
+│        └─ Serialization/           # JSON scene save/restore
+├─ Scripts/GenerateProjectFiles.py
+├─ GenerateProjectFiles.bat
+└─ ReleaseBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- NuGet package restore
+
+The project uses `directxtk_desktop_win10` through NuGet and targets C++20.
+
+### Build Instructions
+
+1. Run `GenerateProjectFiles.bat` after adding or moving files if the project must be regenerated.
+2. Open `NipsEngine.sln` in Visual Studio.
+3. Restore NuGet packages.
+4. Build and run `Debug | x64` or `Release | x64`.
+
+`ReleaseBuild.bat` builds the `Release | x64` configuration through MSBuild. The earlier `ObjViewer | x64` configuration also remains in the project.
+
+## Current Status and Limitations
+
+- Targets Windows and DirectX 11.
+- Fireball lights are point lights centred on Lambert diffuse lighting and distance attenuation.
+- The spotlight Actor is a basic placement demonstration combining an icon and decal, rather than a complete spotlight-lighting implementation.
+- `PursuitMovementComponent` currently targets the editor's `FViewportCamera`, not a general-purpose scene component.
+- Core PIE camera movement, rotation, and exit flow work, but some mouse click/drag handlers remain unimplemented.
+- InterpTo control-point editing supports only `FVector` arrays and not curve-based interpolation.
+- `FEATURE_GUIDE.md` describes team-level decal, height-fog, and fireball features; individual contribution boundaries should be verified against this README and the commit history.
+
+## Notes
+
+- Original collaborative repository: [jskim-research/Jungle_Week6_Team4](https://github.com/jskim-research/Jungle_Week6_Team4)
+- The original repository is no longer available through the GitHub API, so I cross-checked commits from 9–15 April 2026 in [Rocketstein/Nips_W7](https://github.com/Rocketstein/Nips_W7), which continues the same history, against this repository's final code.
+- The 26 top-level commits attributed to Rocketstein during that period include merges and squashes; the list above therefore presents representative commits identified by reviewing messages, changed files, and the final implementation together.
+- Week 5 history before 9 April 2026 and Week 7 work after 15 April 2026 were excluded from the individual-contribution accounting.
+
+---
+
+## 한국어
+
 # Week 6 — Nips Engine
 
 > DirectX 11 기반 멀티패스 렌더러와 에디터/PIE 입력 구조를 확장하고, 동적 광원 및 경로 이동 컴포넌트를 구현한 프로젝트입니다.  
