@@ -44,8 +44,6 @@ The final team project supports a Skeletal Mesh Viewer, bone-hierarchy and gizmo
 - Added a `SkeletalDebug` show flag and editor UI so mesh and skeleton visibility could be controlled independently
 - Adjusted cone scale and debug-line depth testing for correct display across model sizes and occlusion relationships
 
-Representative commits: [`60142eb6`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/60142eb6bedae7477692d1207a6f176b94e2dd07), [`51eee6dc`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/51eee6dc74ad5b1632e415764a6bcbfd1f49b5c8), [`fbb11a5f`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/fbb11a5fd8ee63775f89eeace4915583d487e49a)
-
 ### 2. Skeletal-Mesh Render Data and GPU-Resource Stabilisation
 
 - Clarified buffer ownership and reference relationships among `FSkeletalSubMesh`, `FSkeletalMeshBuffer`, and `FMeshSectionRenderData`
@@ -55,8 +53,6 @@ Representative commits: [`60142eb6`](https://github.com/MozziDog/Jungle_Week10_T
 - Prevented crashes when loading a new skeletal mesh into a Component that already owned one
 - Fixed a render-buffer leak during skeletal SubMesh asset shutdown
 - Integrated shader-contract-driven runtime vertex buffers with Component-level ownership and cleanup
-
-Representative commits: [`05ef2395`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/05ef2395fa13dcc0c374831d3c1f8c4c3ae35012), [`e31657a6`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/e31657a6fc8cd4af6e32d12303200579405501ec), [`e66f09d1`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/e66f09d1ed12132e421a1a29da11ece958a93e08), [`83179c79`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/83179c79d98af773dedf35b63c0afc11e2586e21)
 
 ### 3. FBX Static-Mesh Import and Coordinate-System Correction
 
@@ -68,8 +64,6 @@ Representative commits: [`05ef2395`](https://github.com/MozziDog/Jungle_Week10_T
 - Consolidated material slots by slot name and connected the binary-cache output path
 - Corrected axis-orientation mismatches between skeletal meshes and bones so poses and geometry aligned
 
-Representative commits: [`4de83bd0`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/4de83bd05508376ea070a7a471f867b500459c88), [`0839c4a1`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/0839c4a16db4636e6dd1f678a79733dd70c462b5), [`a06149d3`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/a06149d3a069e7e17fd37e129efde6a770aa0452)
-
 ### 4. Precise Picking of Deformed Skeletal Meshes
 
 - Added a broad phase that first tests the ray against the world AABB
@@ -77,8 +71,6 @@ Representative commits: [`4de83bd0`](https://github.com/MozziDog/Jungle_Week10_T
 - Selected the nearest result returned by a Möller–Trumbore-based `RaycastTriangles` implementation
 - Recorded the actual `USkinnedMeshComponent` in the hit result and forwarded it to editor selection and the Details panel
 - Based picking on the currently deformed surface rather than the reference mesh
-
-Representative commit: [`ca537f5a`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/ca537f5a571804f8a9571a504fc5533b177ed417)
 
 ### 5. Viewer-to-Scene Spawning and Pose Persistence
 
@@ -89,8 +81,6 @@ Representative commit: [`ca537f5a`](https://github.com/MozziDog/Jungle_Week10_Te
 - Reconnected assets and restored saved material overrides and poses during load and duplication
 - Added the missing Matrix property type to scene JSON and aligned `PostEditProperty` responsibility with the shared `USkinnedMeshComponent` flow
 - Prepared `w10.Scene` and `w10_demo.Scene` to demonstrate viewer editing and scene placement
-
-Representative commits: [`7f8f7869`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/7f8f786951e984bb15b18df501ff90286a7a6385), [`ff0fa51b`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/ff0fa51b1d6221946479692800313428f69635c0), [`59b5027b`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/59b5027bf12df0207dd8f04b9398606aec975ca9), [`cc83df4a`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/cc83df4a12701805825dbced5d8fca01bca2461a), [`f1cdc2de`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/f1cdc2de0668ab2f4be7bd5509b96342169203af)
 
 ## Skeletal Asset and Rendering Architecture
 
@@ -256,8 +246,6 @@ Week 9 엔진을 기반으로 정적·스켈레탈 FBX Asset을 불러오고, Sk
 - `SkeletalDebug` Show Flag와 에디터 UI를 추가해 Mesh와 Skeleton 표시를 독립적으로 전환
 - Cone 크기와 Debug Line의 Depth Test 상태를 보정해 모델 크기·가림 관계에 맞게 표시
 
-대표 커밋: [`60142eb6`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/60142eb6bedae7477692d1207a6f176b94e2dd07), [`51eee6dc`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/51eee6dc74ad5b1632e415764a6bcbfd1f49b5c8), [`fbb11a5f`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/fbb11a5fd8ee63775f89eeace4915583d487e49a)
-
 ### 2. Skeletal Mesh 렌더 데이터와 GPU Resource 안정화
 
 - `FSkeletalSubMesh`, `FSkeletalMeshBuffer`, `FMeshSectionRenderData` 사이의 Buffer 소유·참조 관계 정리
@@ -267,8 +255,6 @@ Week 9 엔진을 기반으로 정적·스켈레탈 FBX Asset을 불러오고, Sk
 - 이미 Mesh를 보유한 Component에 새 Skeletal Mesh를 로드할 때 발생하던 Crash 방지
 - Skeletal SubMesh Asset 종료 시 Render Buffer가 해제되지 않던 Resource Leak 수정
 - Shader 입력 계약에 따라 생성한 Runtime Vertex Buffer를 Component 단위로 관리·정리하도록 후속 구조에 연결
-
-대표 커밋: [`05ef2395`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/05ef2395fa13dcc0c374831d3c1f8c4c3ae35012), [`e31657a6`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/e31657a6fc8cd4af6e32d12303200579405501ec), [`e66f09d1`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/e66f09d1ed12132e421a1a29da11ece958a93e08), [`83179c79`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/83179c79d98af773dedf35b63c0afc11e2586e21)
 
 ### 3. FBX Static Mesh Import와 좌표계 보정
 
@@ -280,8 +266,6 @@ Week 9 엔진을 기반으로 정적·스켈레탈 FBX Asset을 불러오고, Sk
 - Material Slot Name을 기준으로 Slot을 통합하고 Binary Cache 저장 경로 연결
 - Skeletal Mesh와 Bone 사이의 축 방향·Orientation 불일치를 수정해 Pose와 Geometry 정렬
 
-대표 커밋: [`4de83bd0`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/4de83bd05508376ea070a7a471f867b500459c88), [`0839c4a1`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/0839c4a16db4636e6dd1f678a79733dd70c462b5), [`a06149d3`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/a06149d3a069e7e17fd37e129efde6a770aa0452)
-
 ### 4. 변형된 Skeletal Mesh의 정밀 Picking
 
 - World AABB와 Ray의 교차 여부를 먼저 검사하는 Broad Phase 구성
@@ -289,8 +273,6 @@ Week 9 엔진을 기반으로 정적·스켈레탈 FBX Asset을 불러오고, Sk
 - Möller–Trumbore 알고리즘 기반 `RaycastTriangles` 결과 중 가장 가까운 Hit 선택
 - 선택 결과에 실제 `USkinnedMeshComponent`를 기록해 Editor Selection과 Details Panel로 전달
 - Reference Mesh가 아닌 현재 Pose의 변형된 표면을 기준으로 Picking하도록 구성
-
-대표 커밋: [`ca537f5a`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/ca537f5a571804f8a9571a504fc5533b177ed417)
 
 ### 5. Viewer→Scene Spawn과 Pose 영속화
 
@@ -301,8 +283,6 @@ Week 9 엔진을 기반으로 정적·스켈레탈 FBX Asset을 불러오고, Sk
 - Load / Duplicate 시 Asset을 다시 연결한 뒤 저장된 Material Override와 Pose를 복원
 - Scene JSON의 Matrix Property Type 누락을 수정하고 `PostEditProperty` 책임을 공통 `USkinnedMeshComponent` 흐름에 맞게 정리
 - 발표용 `w10.Scene`, `w10_demo.Scene`을 통해 Viewer 편집과 Scene 배치 결과 구성
-
-대표 커밋: [`7f8f7869`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/7f8f786951e984bb15b18df501ff90286a7a6385), [`ff0fa51b`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/ff0fa51b1d6221946479692800313428f69635c0), [`59b5027b`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/59b5027bf12df0207dd8f04b9398606aec975ca9), [`cc83df4a`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/cc83df4a12701805825dbced5d8fca01bca2461a), [`f1cdc2de`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/f1cdc2de0668ab2f4be7bd5509b96342169203af)
 
 ## Skeletal Asset·렌더링 구조
 

@@ -44,8 +44,6 @@ The final team project supports collision filtering, a Physics Asset Editor, rag
 - Read chassis world pose and wheel-local poses after physics updates and synchronised them with the Actor and four wheel-mesh Components
 - Removed vehicle Actors from ordinary body synchronisation so the manager became the single writer of simulation results
 
-Representative commits: [`bdfb326a`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/bdfb326a306e7c9499eb8eefa5fc02708850a11f), [`d0be345e`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/d0be345ef345ac6b3883b25a500399ac49067c46), [`c1e30e11`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/c1e30e11f6f8f1db37855d8ab26717cb89c7b43f74e0df49)
-
 ### 2. Vehicle Demo Scene and Engine-Audio Feedback
 
 - Added car-body and wheel assets and materials to the engine content pipeline and built `DriveDemo.Scene`
@@ -53,8 +51,6 @@ Representative commits: [`bdfb326a`](https://github.com/CaptainTangerine/Jungle_
 - Exposed engine angular velocity and gear ratio through the Vehicle Movement Component
 - Connected an engine loop to the FMOD Audio Manager and varied sound pitch with engine speed
 - Completed a single-scene demonstration covering vehicle creation, simulation, wheel poses, and audio
-
-Representative commits: [`18cb16cd`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/18cb16cd9508ae65f1d93c81820547d7c0101afa), [`e1f1be34`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/e1f1be34558c55000d4278b4227fd2cf8c722fad), [`47b6cca7`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/47b6cca7ab236f1db37855d8ab26717cb89c7b43), [`464c1a13`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/464c1a1302203f05719a8cd693d937dd163df364)
 
 ### 3. Camera Post-Process Settings and the DOF Render Path
 
@@ -65,8 +61,6 @@ Representative commits: [`18cb16cd`](https://github.com/CaptainTangerine/Jungle_
 - Explicitly unbound textures, switched render targets and viewports, and restored state after passes to prevent Direct3D 11 resource hazards
 - Corrected downsample-resource sizing so odd viewport dimensions still receive sufficient coverage
 
-Representative commits: [`2122aeed`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/2122aeedb36a74e4153e1a8fb9752f18ed05a05c), [`0dc47ef5`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/0dc47ef5d330b47f142b246128a2c8748e2e043a), [`5fcf898a`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/5fcf898acbcd1edaf27e6a8ed0b68e2127ea8d44), [`8a8a8e1b`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/8a8a8e1bb5bae79df9cde0af291efc2ac0b7b7ce)
-
 ### 4. Solid Physics-Asset Debug Rendering and Overlay Pass
 
 - Implemented a solid-geometry builder that produces position/normal triangle soups for Physics Asset spheres, boxes, and capsules in addition to wire lines
@@ -76,8 +70,6 @@ Representative commits: [`2122aeed`](https://github.com/CaptainTangerine/Jungle_
 - Propagated selected-body highlighting, body/constraint visibility, and solid/wireframe toggles through the scene-proxy cache
 - Added `OverlayAlphaPass` to composite translucent physics bodies while preserving depth, and routed the Physics Asset Debug Component through it
 
-Representative commits: [`4049ca07`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/4049ca0798d8b4d10a09c64ac2b95987accd56e0), [`92d5d854`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/92d5d854021fe7d5d4c8d8659ce0a9a8c600fa66), [`b1d16ac0`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/b1d16ac0f8d7a71b84f0f3fbf60a828ab3c50ba4), [`7067b877`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/7067b8773c644160540724272c9cc3c8c7fb46ab), [`f9e6c9ad`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/f9e6c9adcf6bf54d2632377fcc1c3dcc96e607c8)
-
 ### 5. Physics Profiling and Console Integration
 
 - Added `FPhysicsStats` to collect the number of active constraints and simulating dynamic bodies in each frame
@@ -85,8 +77,6 @@ Representative commits: [`4049ca07`](https://github.com/CaptainTangerine/Jungle_
 - Combined existing `FStatManager` timing snapshots with physics counters in a single overlay
 - Registered the `stat physics` command with the editor Console and managed the overlay's visibility state
 - Reset statistics when restarting a scene or switching worlds so counters from the previous frame did not remain visible
-
-Representative commits: [`8b6060ae`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/8b6060ae7f446f70ae3c879b2859748451a10db1), [`20aed4fa`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/20aed4fade5a9ef200681d035d8a81eacdfb2007)
 
 ## Vehicle-Simulation Architecture
 
@@ -261,8 +251,6 @@ Week 12 엔진을 기반으로 PhysX 4.1 물리 Scene과 Animation·Rendering �
 - Physics Update 후 Chassis World Pose와 Wheel Local Pose를 읽어 Actor와 네 Wheel Mesh Component에 동기화
 - Vehicle Actor를 일반 Body Sync 대상과 분리해 Manager가 Simulation의 단일 Writer가 되도록 책임 정리
 
-대표 커밋: [`bdfb326a`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/bdfb326a306e7c9499eb8eefa5fc02708850a11f), [`d0be345e`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/d0be345ef345ac6b3883b25a500399ac49067c46), [`c1e30e11`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/c1e30e11f6f8f1db37855d8ab26717cb89c7b43f74e0df49)
-
 ### 2. Vehicle Demo Scene과 Engine Audio Feedback
 
 - Car Body·Wheel Asset과 Material을 Engine Content Pipeline에 추가하고 `DriveDemo.Scene` 구성
@@ -270,8 +258,6 @@ Week 12 엔진을 기반으로 PhysX 4.1 물리 Scene과 Animation·Rendering �
 - Vehicle Movement Component가 Engine Angular Velocity와 Gear Ratio를 노출하도록 구성
 - FMOD Audio Manager에 Engine Loop를 연결하고 회전수에 따라 Engine Sound Pitch가 변하도록 Audio Hook 구현
 - 차량 생성·Simulation·Wheel Pose·Audio까지 한 Scene에서 검증할 수 있는 Demo 흐름 완성
-
-대표 커밋: [`18cb16cd`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/18cb16cd9508ae65f1d93c81820547d7c0101afa), [`e1f1be34`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/e1f1be34558c55000d4278b4227fd2cf8c722fad), [`47b6cca7`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/47b6cca7ab236f1db37855d8ab26717cb89c7b43), [`464c1a13`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/464c1a1302203f05719a8cd693d937dd163df364)
 
 ### 3. Camera Post Process Settings와 DOF Render Path
 
@@ -282,8 +268,6 @@ Week 12 엔진을 기반으로 PhysX 4.1 물리 Scene과 Animation·Rendering �
 - Texture Binding 해제, Render Target·Viewport 전환과 Pass 종료 후 상태 복원을 명시해 D3D11 Resource Hazard 방지
 - 홀수 Viewport 크기에서도 Downsample Resource가 충분한 영역을 갖도록 크기 계산 보정
 
-대표 커밋: [`2122aeed`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/2122aeedb36a74e4153e1a8fb9752f18ed05a05c), [`0dc47ef5`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/0dc47ef5d330b47f142b246128a2c8748e2e043a), [`5fcf898a`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/5fcf898acbcd1edaf27e6a8ed0b68e2127ea8d44), [`8a8a8e1b`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/8a8a8e1bb5bae79df9cde0af291efc2ac0b7b7ce)
-
 ### 4. Physics Asset Solid Debug Rendering과 Overlay Pass
 
 - Physics Asset의 Sphere·Box·Capsule을 Wire Line뿐 아니라 Position·Normal을 가진 Triangle Soup으로 생성하는 Solid Builder 구현
@@ -293,8 +277,6 @@ Week 12 엔진을 기반으로 PhysX 4.1 물리 Scene과 Animation·Rendering �
 - 선택 Body Highlight, Body / Constraint 표시와 Solid / Wireframe Toggle을 Scene Proxy Cache에 반영
 - Depth를 유지하면서 반투명 Physics Body를 합성하는 `OverlayAlphaPass`를 추가하고 Physics Asset Debug Component를 해당 경로로 Routing
 
-대표 커밋: [`4049ca07`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/4049ca0798d8b4d10a09c64ac2b95987accd56e0), [`92d5d854`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/92d5d854021fe7d5d4c8d8659ce0a9a8c600fa66), [`b1d16ac0`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/b1d16ac0f8d7a71b84f0f3fbf60a828ab3c50ba4), [`7067b877`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/7067b8773c644160540724272c9cc3c8c7fb46ab), [`f9e6c9ad`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/f9e6c9adcf6bf54d2632377fcc1c3dcc96e607c8)
-
 ### 5. Physics Profiling과 Console Integration
 
 - 한 Frame의 Active Constraint 수와 Simulating Dynamic Body 수를 수집하는 `FPhysicsStats` 추가
@@ -302,8 +284,6 @@ Week 12 엔진을 기반으로 PhysX 4.1 물리 Scene과 Animation·Rendering �
 - 기존 `FStatManager` Timing Snapshot과 Physics Counter를 결합한 Overlay 구성
 - Editor Console에 `stat physics` Command를 등록하고 Physics Overlay 표시 상태를 관리
 - Scene을 다시 시작하거나 World를 전환할 때 이전 Frame Counter가 남지 않도록 Stat Reset 경로 연결
-
-대표 커밋: [`8b6060ae`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/8b6060ae7f446f70ae3c879b2859748451a10db1), [`20aed4fa`](https://github.com/CaptainTangerine/Jungle_Week13_Team4/commit/20aed4fade5a9ef200681d035d8a81eacdfb2007)
 
 ## Vehicle Simulation 구조
 

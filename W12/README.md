@@ -45,8 +45,6 @@ The final team project supports modular emitters, LOD, a particle editor, collis
 - Connected `UParticleSystemComponent` simulation output to `FParticleSystemSceneProxy::UpdateDynamicData`
 - Configured the proxy to release the previous frame's snapshot, take ownership of the new one, and update mesh, material, and per-viewport state
 
-Representative commits: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/65f128d08682ed130540ae15ddf9b926ba33384c), [`1b2999ff`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/1b2999ff7cf06f9544a9d460a057b2094e71786b), [`c0095688`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/c0095688ce691c013707cc101661e4c038f51c89)
-
 ### 2. Sprite Packing and GPU Instancing for Mesh Particles
 
 - Expanded each sprite into four camera-facing quad vertices and six indices, packing them into shared dynamic buffers
@@ -56,8 +54,6 @@ Representative commits: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week1
 - Packed per-mesh-particle transforms, colours, and dynamic parameters into an instance buffer
 - Added a second vertex buffer, instance stride/count/start, and a `DrawIndexedInstanced` path to `FDrawCommand`
 - Propagated LOD levels in mesh-emitter snapshots and bound static-mesh geometry together with instance data
-
-Representative commits: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/65f128d08682ed130540ae15ddf9b926ba33384c), [`b483c6ac`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/b483c6aca622d144b5b46045b32b7e00f96d96f8), [`559ab7b2`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/559ab7b2eb33c95ad9a623f1333e54bdc1757ffd), [`2c3dbc2b`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/2c3dbc2b130ad4d24c1132da560a11a624550a2b)
 
 ### 3. Particle/Emitter Sorting, Screen Alignment, and Blend Routing
 
@@ -70,8 +66,6 @@ Representative commits: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week1
 - Routed each emitter to the opaque pass or the alpha/additive states of the alpha-blend pass according to material blend mode
 - Fixed billboard winding, horizontal sprite inversion, and transparency-clipping errors
 
-Representative commits: [`94fa4bb7`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/94fa4bb7e80071b689870d8c753560a3b6f175cd), [`202826c0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/202826c09973b50ac6cd818653b94a59c7acc27f), [`94f7bc81`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/94f7bc81370c79fa4dc696146983347ddb52f3e5), [`affef204`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/affef20482c6b382dfedaec3e8e1c1ef99b8b1e4)
-
 ### 4. Beam TypeData, Runtime Instances, and Dynamic Geometry
 
 - Adapted Cascade's `ParticleModuleTypeDataBeam2` structure to the engine's reflection, LOD, and serialisation systems
@@ -83,8 +77,6 @@ Representative commits: [`94fa4bb7`](https://github.com/Rocketstein/Jungle_Week1
 - Maintained `bAlwaysOn` beam counts and updated sibling-emitter endpoints and beam progress
 - Connected beam shaders, a default material, smoke tests, and particle-asset save/load
 
-Representative commits: [`4e3bac5c`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/4e3bac5c9ad86298b49e5b6a96469674ef17e81d), [`a938b950`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/a938b950fc23d15c48ef6f71beb87b063e24ee9e)
-
 ### 5. Beam Source, Target, and Noise Modules with Rendering Integration
 
 - Implemented a reflectable beam-module base and source, target, and noise modules as UObjects
@@ -95,8 +87,6 @@ Representative commits: [`4e3bac5c`](https://github.com/Rocketstein/Jungle_Week1
 - Stored noise data in per-emitter arenas and reconnected per-particle-slot slices to preserve pointer stability
 - Exposed beam modules and TypeData choices in the Particle Editor
 - Added a viewport show flag and render-collector gate for global particle visibility
-
-Representative commits: [`a938b950`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/a938b950fc23d15c48ef6f71beb87b063e24ee9e), [`d100167e`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/d100167e70dbed9bd25bde9b52101daf52dbc7b0)
 
 ## Particle Simulation and Rendering Architecture
 
@@ -261,8 +251,6 @@ Week 11 엔진을 기반으로 `ParticleSystem → Emitter → LODLevel → Modu
 - `UParticleSystemComponent`가 Simulation 결과를 `FParticleSystemSceneProxy::UpdateDynamicData`로 넘기도록 연결
 - Proxy가 이전 Frame Snapshot을 해제하고 새 데이터를 인수한 뒤 Mesh·Material·Per-viewport 상태를 갱신하도록 구성
 
-대표 커밋: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/65f128d08682ed130540ae15ddf9b926ba33384c), [`1b2999ff`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/1b2999ff7cf06f9544a9d460a057b2094e71786b), [`c0095688`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/c0095688ce691c013707cc101661e4c038f51c89)
-
 ### 2. Sprite Packing과 Mesh Particle GPU Instancing
 
 - Sprite 한 개를 카메라 방향 Quad의 4개 Vertex와 6개 Index로 확장해 공용 Dynamic Buffer에 Packing
@@ -272,8 +260,6 @@ Week 11 엔진을 기반으로 `ParticleSystem → Emitter → LODLevel → Modu
 - Mesh Particle별 Transform·Color·Dynamic Parameter를 Instance Buffer로 Packing
 - `FDrawCommand`에 두 번째 Vertex Buffer, Instance Stride / Count / Start를 추가하고 `DrawIndexedInstanced` 경로 연결
 - Mesh Emitter Snapshot에 LOD Level을 전달하고 Static Mesh Geometry와 Instance Data를 함께 Binding
-
-대표 커밋: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/65f128d08682ed130540ae15ddf9b926ba33384c), [`b483c6ac`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/b483c6aca622d144b5b46045b32b7e00f96d96f8), [`559ab7b2`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/559ab7b2eb33c95ad9a623f1333e54bdc1757ffd), [`2c3dbc2b`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/2c3dbc2b130ad4d24c1132da560a11a624550a2b)
 
 ### 3. Particle·Emitter 정렬, Screen Alignment와 Blend Routing
 
@@ -286,8 +272,6 @@ Week 11 엔진을 기반으로 `ParticleSystem → Emitter → LODLevel → Modu
 - Emitter Material의 Blend Mode에 따라 Opaque Pass 또는 Alpha Blend Pass의 Alpha / Additive State로 Routing
 - Billboard Winding, Sprite 좌우 반전과 Transparency Clipping 오류 수정
 
-대표 커밋: [`94fa4bb7`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/94fa4bb7e80071b689870d8c753560a3b6f175cd), [`202826c0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/202826c09973b50ac6cd818653b94a59c7acc27f), [`94f7bc81`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/94f7bc81370c79fa4dc696146983347ddb52f3e5), [`affef204`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/affef20482c6b382dfedaec3e8e1c1ef99b8b1e4)
-
 ### 4. Beam TypeData, Runtime Instance와 Dynamic Geometry
 
 - Cascade의 `ParticleModuleTypeDataBeam2` 구조를 엔진 Reflection·LOD·Serialization 체계에 맞게 구성
@@ -299,8 +283,6 @@ Week 11 엔진을 기반으로 `ParticleSystem → Emitter → LODLevel → Modu
 - `bAlwaysOn` Beam 수 유지, Sibling Emitter Endpoint와 Beam 진행률 갱신
 - Beam Shader, 기본 Material, Smoke Test와 Particle Asset 저장·불러오기 연결
 
-대표 커밋: [`4e3bac5c`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/4e3bac5c9ad86298b49e5b6a96469674ef17e81d), [`a938b950`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/a938b950fc23d15c48ef6f71beb87b063e24ee9e)
-
 ### 5. Beam Source / Target / Noise Module과 렌더 통합
 
 - Beam 전용 Module Base와 Source / Target / Noise Module을 Reflection 가능한 UObject로 구현
@@ -311,8 +293,6 @@ Week 11 엔진을 기반으로 `ParticleSystem → Emitter → LODLevel → Modu
 - Noise Data를 Emitter별 Arena에 보관하고 Particle Slot별 Slice를 재연결해 Pointer 안정성 확보
 - Beam Module을 Particle Editor의 추가 가능 Module과 TypeData 선택에 연결
 - 전체 Particle 표시를 제어하는 Viewport Show Flag와 Render Collector Gate 추가
-
-대표 커밋: [`a938b950`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/a938b950fc23d15c48ef6f71beb87b063e24ee9e), [`d100167e`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/d100167e70dbed9bd25bde9b52101daf52dbc7b0)
 
 ## Particle 실행·렌더링 구조
 

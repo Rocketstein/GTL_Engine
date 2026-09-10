@@ -36,8 +36,6 @@ I implemented core game-engine workflows, including the rendering loop, an objec
 - Refactored the camera into a `USceneComponent` so that it participates in the transform hierarchy
 - Implemented keyboard movement, mouse-drag rotation, wheel zoom, and perspective/orthographic switching, and corrected several control issues
 
-Representative commits: [`0236441`](https://github.com/JHCard7872/Week2/commit/0236441), [`314fc53`](https://github.com/JHCard7872/Week2/commit/314fc53), [`9d51e26`](https://github.com/JHCard7872/Week2/commit/9d51e26), [`08bd010`](https://github.com/JHCard7872/Week2/commit/08bd010), [`7de8997`](https://github.com/JHCard7872/Week2/commit/7de8997)
-
 ### 2. Object and World Architecture with Lifetime Management
 
 - Designed and implemented `UWorld`, `AActor`, and `UObjectManager`
@@ -46,16 +44,12 @@ Representative commits: [`0236441`](https://github.com/JHCard7872/Week2/commit/0
 - Implemented deferred cleanup for pending-kill objects and fixed memory-related errors
 - Laid the foundation for an object factory capable of creating objects from type names
 
-Representative commits: [`442fbe4`](https://github.com/JHCard7872/Week2/commit/442fbe4), [`2447db4`](https://github.com/JHCard7872/Week2/commit/2447db4), [`14e5f9b`](https://github.com/JHCard7872/Week2/commit/14e5f9b), [`9376142`](https://github.com/JHCard7872/Week2/commit/9376142), [`e80a445`](https://github.com/JHCard7872/Week2/commit/e80a445)
-
 ### 3. Render Collection and Editor Interaction
 
 - Introduced `FRenderCollector` to gather render data from worlds, actors, and components
 - Implemented picking by converting screen coordinates into a world-space ray and selecting the nearest primitive
 - Connected selected-object data to an ImGui panel for real-time transform editing
 - Improved gizmo dragging, axis selection, on-screen size compensation, and console feedback across translation, rotation, and scale modes
-
-Representative commits: [`dfdc2ad`](https://github.com/JHCard7872/Week2/commit/dfdc2ad), [`2501ef2`](https://github.com/JHCard7872/Week2/commit/2501ef2), [`ac91906`](https://github.com/JHCard7872/Week2/commit/ac91906), [`dcb967e`](https://github.com/JHCard7872/Week2/commit/dcb967e)
 
 ### 4. Scene Serialisation and Editor Workflow
 
@@ -64,8 +58,6 @@ Representative commits: [`dfdc2ad`](https://github.com/JHCard7872/Week2/commit/d
 - Safely reset the UI selection state and viewport after loading a scene
 - Fixed crashes caused by invalid paths, repeated save/load operations, and file-I/O conflicts
 - Improved scene-operation notifications, FOV and camera controls, and multi-object spawning
-
-Representative commits: [`3ffbf67`](https://github.com/JHCard7872/Week2/commit/3ffbf67), [`bf68f99`](https://github.com/JHCard7872/Week2/commit/bf68f99), [`8109fef`](https://github.com/JHCard7872/Week2/commit/8109fef), [`43056a8`](https://github.com/JHCard7872/Week2/commit/43056a8), [`7577e9f`](https://github.com/JHCard7872/Week2/commit/7577e9f)
 
 ## Controls
 
@@ -153,8 +145,6 @@ The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
 - 카메라를 `USceneComponent`로 리팩터링해 Transform 계층과 연동
 - 키보드 이동, 마우스 드래그 회전, 휠 줌, Perspective / Orthographic 전환 구현 및 조작 오류 보정
 
-대표 커밋: [`0236441`](https://github.com/JHCard7872/Week2/commit/0236441), [`314fc53`](https://github.com/JHCard7872/Week2/commit/314fc53), [`9d51e26`](https://github.com/JHCard7872/Week2/commit/9d51e26), [`08bd010`](https://github.com/JHCard7872/Week2/commit/08bd010), [`7de8997`](https://github.com/JHCard7872/Week2/commit/7de8997)
-
 ### 2. 오브젝트·월드 구조와 수명주기 관리
 
 - `UWorld`, `AActor`, `UObjectManager` 구조 설계 및 구현
@@ -163,16 +153,12 @@ The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
 - Pending Kill 객체 정리 시스템 및 메모리 관련 오류 수정
 - 타입 이름으로 객체를 생성할 수 있는 Object Factory 기반 마련
 
-대표 커밋: [`442fbe4`](https://github.com/JHCard7872/Week2/commit/442fbe4), [`2447db4`](https://github.com/JHCard7872/Week2/commit/2447db4), [`14e5f9b`](https://github.com/JHCard7872/Week2/commit/14e5f9b), [`9376142`](https://github.com/JHCard7872/Week2/commit/9376142), [`e80a445`](https://github.com/JHCard7872/Week2/commit/e80a445)
-
 ### 3. 렌더 수집 구조와 에디터 상호작용
 
 - World / Actor / Component의 렌더 정보를 모으는 `FRenderCollector` 도입
 - 화면 좌표를 월드 Ray로 변환해 가장 가까운 프리미티브를 선택하는 피킹 구현
 - 선택 객체 정보를 ImGui 패널에 연결하고 Transform을 실시간 편집하도록 구성
 - 이동·회전·크기 조절 기즈모의 드래그, 축 선택, 화면 크기 보정 및 콘솔 피드백 개선
-
-대표 커밋: [`dfdc2ad`](https://github.com/JHCard7872/Week2/commit/dfdc2ad), [`2501ef2`](https://github.com/JHCard7872/Week2/commit/2501ef2), [`ac91906`](https://github.com/JHCard7872/Week2/commit/ac91906), [`dcb967e`](https://github.com/JHCard7872/Week2/commit/dcb967e)
 
 ### 4. 씬 직렬화와 에디터 워크플로
 
@@ -181,8 +167,6 @@ The project targets MSVC `v143`, the Windows 10 SDK, and C++17.
 - 로드 후 UI 선택 상태와 뷰포트를 안전하게 초기화하도록 개선
 - 잘못된 경로, 반복 저장·불러오기, 파일 입출력 충돌로 인한 크래시 수정
 - 씬 작업 완료 알림과 FOV·카메라·다중 Spawn 조작 개선
-
-대표 커밋: [`3ffbf67`](https://github.com/JHCard7872/Week2/commit/3ffbf67), [`bf68f99`](https://github.com/JHCard7872/Week2/commit/bf68f99), [`8109fef`](https://github.com/JHCard7872/Week2/commit/8109fef), [`43056a8`](https://github.com/JHCard7872/Week2/commit/43056a8), [`7577e9f`](https://github.com/JHCard7872/Week2/commit/7577e9f)
 
 ## 조작 방법
 

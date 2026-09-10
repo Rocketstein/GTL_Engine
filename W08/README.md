@@ -42,8 +42,6 @@ The final team project supports hard shadows, PCF and VSM filtering, multiple at
 - Corrected failed allocations for non-power-of-two requests and added a minimum-resolution bound
 - Changed `RemainingSpace` tracking from linear extent to actual area
 
-Representative commits: [`b50951fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b50951fc52101e79e1aed10d44b8636aaecee9a3), [`b7e873e5`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b7e873e5bd8ad04f72a89d2f267bf976f00b5d7d), [`908b85fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/908b85fc86f060e87ef0b331842fe841851074c8), [`90021817`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/90021817ec43c3ea3f640ead3f6484e1ab4fd408)
-
 ### 2. Screen-Contribution-Based Adaptive Resolution and Batch Allocation
 
 - Estimated each light's projected screen area from camera position, direction, FOV, and light radius
@@ -51,8 +49,6 @@ Representative commits: [`b50951fc`](https://github.com/shimwoojin/Jungle_Week8_
 - Normalised requests to the nearest power of two and clamped them to the atlas's minimum and maximum sizes
 - Batched light requests and allocated larger tiles first, reducing fragmentation caused by servicing small requests before large ones
 - Replaced immediate per-light region creation with an `AddToBatch → CommitBatch` flow
-
-Representative commits: [`596285f3`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/596285f3f98449d8da84f14b737a94947f74f706), [`56b33649`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/56b33649b73e8ce1b94ee0464e26b8ef27357b7c), [`54065540`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/540655405e1d6d8679bcae784e1999a319781629), [`6389d443`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/6389d44342b79a675b3b3839db2dbf15ee8d9f01)
 
 ### 3. Spot-Light Shadow-Atlas Rendering Path
 
@@ -62,8 +58,6 @@ Representative commits: [`596285f3`](https://github.com/shimwoojin/Jungle_Week8_
 - Bound the spot-atlas texture and shadow data to shader-resource slots and added atlas-region debug overlays
 - Switched the shadow-depth pass to front-face culling and resolved resource hazards in the VSM path
 
-Representative commits: [`aa82dbc6`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/aa82dbc69b592bdd7799af92ba63fa0c27bfce6d), [`50b70965`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/50b70965fd31512ea99fb9f72914b684602eaed3), [`c4feee67`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/c4feee6703c7b692e59d8f457cb8376e617ddce8), [`9b8a9881`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9b8a98812095744fac42182c783257e380f8e367), [`28e7b91c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/28e7b91c7f67fd971e9e42f874ffb55861a0c199)
-
 ### 4. Point-Light Cube-Face Atlas
 
 - Extracted the shared node-allocation logic into `FAtlasQuadTreeBase` and extended it with dedicated spot- and point-light evaluation classes
@@ -71,8 +65,6 @@ Representative commits: [`aa82dbc6`](https://github.com/shimwoojin/Jungle_Week8_
 - Recorded the light index and cube-face orientation in `FAtlasRegion` and connected them to GPU shadow data
 - Replaced the existing `Texture2DArray` point-shadow path with atlas allocation and screen-contribution-based resolution evaluation
 - Corrected point-atlas region-frame display, the resolution-evaluation formula, and `ShadowResolutionScale` behaviour
-
-Representative commits: [`37a1980d`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/37a1980d140e6c4df70dabc859e0c2345f72ca53), [`46668f33`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/46668f337c300a5181f52195b76a671e847f41e0), [`0ee6f506`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/0ee6f506e0f650572aa0c7dbf9d2ecb80993952f), [`3693075c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/3693075c5afa8fda93e77cda0be8c8cc357ebcfa), [`85ca1401`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/85ca1401af33636cfd8ee8105966b4f182d0b824)
 
 ### 5. Shadow-Quality Corrections and Engine Integration
 
@@ -82,8 +74,6 @@ Representative commits: [`37a1980d`](https://github.com/shimwoojin/Jungle_Week8_
 - Resolved a Direct3D 11 read/write hazard caused by binding the previous frame's shadow SRV while using the same resource as a depth target
 - Ported `UInterpToMovementComponent` from the previous week into the evolved engine architecture and reconnected its property UI, `Vec3Array` serialisation, and demo-scene usage
 - Prepared `w8demo.Scene` to demonstrate and test spot/point atlases and InterpToMovement
-
-Representative commits: [`059f72ef`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/059f72ef74062c09c7af4d9b0ea0e33e28abdb5b), [`8fd509d9`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/8fd509d9609c655a0cc86865ed4e091e881690c8), [`fd58635a`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/fd58635a9895b6301aafc12e2523990915762d1b), [`9eeaaa58`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9eeaaa5886bc05a1616c7a5b2070568a9f55520e), [`38a0e89f`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/38a0e89f48afbb6f1dd1d2a42ea59ec1f5db1104)
 
 ## Shadow-Rendering Architecture
 
@@ -249,8 +239,6 @@ Week 7의 라이팅·Light Culling 렌더러를 기반으로, Directional / Spot
 - Power-of-Two가 아닌 요청으로 유효한 영역을 찾지 못하던 문제를 보정하고 최소 해상도 Bound 추가
 - 선형 길이가 아닌 면적을 기준으로 `RemainingSpace`를 추적하도록 수정
 
-대표 커밋: [`b50951fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b50951fc52101e79e1aed10d44b8636aaecee9a3), [`b7e873e5`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/b7e873e5bd8ad04f72a89d2f267bf976f00b5d7d), [`908b85fc`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/908b85fc86f060e87ef0b331842fe841851074c8), [`90021817`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/90021817ec43c3ea3f640ead3f6484e1ab4fd408)
-
 ### 2. 화면 기여도 기반 적응형 해상도와 Batch Allocation
 
 - 카메라 위치·방향·FOV와 Light의 Radius를 이용해 화면에 투영되는 면적을 추정
@@ -258,8 +246,6 @@ Week 7의 라이팅·Light Culling 렌더러를 기반으로, Directional / Spot
 - 요청 해상도를 가장 가까운 Power-of-Two로 정규화하고 Atlas 최소·최대 범위로 제한
 - Light 요청을 Batch에 모아 큰 Tile부터 할당해 작은 요청이 공간을 먼저 파편화하는 현상 완화
 - 개별 `Add`마다 Region을 즉시 생성하던 흐름을 `AddToBatch → CommitBatch`로 변경
-
-대표 커밋: [`596285f3`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/596285f3f98449d8da84f14b737a94947f74f706), [`56b33649`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/56b33649b73e8ce1b94ee0464e26b8ef27357b7c), [`54065540`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/540655405e1d6d8679bcae784e1999a319781629), [`6389d443`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/6389d44342b79a675b3b3839db2dbf15ee8d9f01)
 
 ### 3. Spot Light Shadow Atlas 렌더 경로
 
@@ -269,8 +255,6 @@ Week 7의 라이팅·Light Culling 렌더러를 기반으로, Directional / Spot
 - Spot Atlas Texture와 Shadow Data를 Shader Resource Slot에 연결하고 Atlas Region Debug Overlay 추가
 - Shadow Depth Pass에서 Front-face Culling을 사용하도록 변경하고 VSM 경로의 리소스 Hazard 수정
 
-대표 커밋: [`aa82dbc6`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/aa82dbc69b592bdd7799af92ba63fa0c27bfce6d), [`50b70965`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/50b70965fd31512ea99fb9f72914b684602eaed3), [`c4feee67`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/c4feee6703c7b692e59d8f457cb8376e617ddce8), [`9b8a9881`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9b8a98812095744fac42182c783257e380f8e367), [`28e7b91c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/28e7b91c7f67fd971e9e42f874ffb55861a0c199)
-
 ### 4. Point Light Cube Face Atlas
 
 - 공통 Node 할당 로직을 `FAtlasQuadTreeBase`로 분리하고 Spot / Point 전용 평가 클래스로 확장
@@ -278,8 +262,6 @@ Week 7의 라이팅·Light Culling 렌더러를 기반으로, Directional / Spot
 - `FAtlasRegion`에 Light Index와 Cube Face Orientation을 기록해 GPU Shadow Data와 연결
 - 기존 `Texture2DArray` 기반 Point Shadow를 Atlas 방식으로 전환하고 화면 기여도 기반 해상도 평가 적용
 - Point Atlas의 Region Frame 표시, 해상도 평가식과 `ShadowResolutionScale` 동작 보정
-
-대표 커밋: [`37a1980d`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/37a1980d140e6c4df70dabc859e0c2345f72ca53), [`46668f33`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/46668f337c300a5181f52195b76a671e847f41e0), [`0ee6f506`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/0ee6f506e0f650572aa0c7dbf9d2ecb80993952f), [`3693075c`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/3693075c5afa8fda93e77cda0be8c8cc357ebcfa), [`85ca1401`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/85ca1401af33636cfd8ee8105966b4f182d0b824)
 
 ### 5. Shadow 품질 보정과 엔진 통합
 
@@ -289,8 +271,6 @@ Week 7의 라이팅·Light Culling 렌더러를 기반으로, Directional / Spot
 - 이전 Frame의 Shadow SRV가 Depth Target과 동시에 바인딩되어 발생하는 Direct3D 11 Read / Write Hazard 해결
 - 이전 주차의 `UInterpToMovementComponent`를 발전된 엔진 구조로 이식하고 Property UI, `Vec3Array` 직렬화와 Demo Scene에 재연결
 - Spotlight / Point Atlas와 InterpToMovement를 점검할 수 있는 테스트·발표용 `w8demo.Scene` 구성
-
-대표 커밋: [`059f72ef`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/059f72ef74062c09c7af4d9b0ea0e33e28abdb5b), [`8fd509d9`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/8fd509d9609c655a0cc86865ed4e091e881690c8), [`fd58635a`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/fd58635a9895b6301aafc12e2523990915762d1b), [`9eeaaa58`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/9eeaaa5886bc05a1616c7a5b2070568a9f55520e), [`38a0e89f`](https://github.com/shimwoojin/Jungle_Week8_Team2/commit/38a0e89f48afbb6f1dd1d2a42ea59ec1f5db1104)
 
 ## Shadow 렌더링 구조
 
