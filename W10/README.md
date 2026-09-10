@@ -1,3 +1,215 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 10 — Pacific Engine: Skeletal Mesh & FBX
+
+> A project that adds an FBX asset pipeline, skeletal-mesh skinning, and dedicated editing tools to a custom DirectX 11 engine.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original collaborative project](https://github.com/MozziDog/Jungle_Week10_Team6).
+
+## Project Overview
+
+Building on the Week 9 engine, we implemented a pipeline for importing static and skeletal FBX assets and editing and rendering character poses using skeleton hierarchies and skin weights. Mesh, section, material, bone, and bind-pose data extracted through the FBX SDK is converted into engine assets, while CPU-skinned results are connected to DirectX 11 vertex buffers and scene proxies.
+
+The final team project supports a Skeletal Mesh Viewer, bone-hierarchy and gizmo editing, skeleton debug overlays, scene spawning, and pose persistence. The **My Contributions** section below distinguishes work authored by Rocketstein using commits and the files actually changed.
+
+- **Core development period:** 8–14 May 2026
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, Autodesk FBX SDK, CPU skinning, HLSL, Dear ImGui
+- **Areas of responsibility:** Skeletal debug pass, skeletal rendering resources, FBX static import, mesh picking, scene spawning, and pose persistence
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- Autodesk FBX SDK-based static and skeletal mesh import
+- Coordinate-axis and unit conversion for FBX scenes, with mesh-node traversal
+- Skeleton hierarchy, reference/display poses, and bind-matrix management
+- CPU skinning using per-vertex bone indices and weights
+- Per-SubMesh/Section material slots and shader-specific dynamic vertex layouts
+- Bone hierarchy, picking, transform gizmos, and pose reset in the Skeletal Mesh Viewer
+- Skeleton debug views for skin bind pose and FBX local pose
+- Skeletal debug render pass showing bone nodes and parent–child links
+- Scene spawning of an edited skeletal mesh and pose from the viewer
+- Scene serialisation of skeletal-mesh assets, material overrides, and bone poses
+- Registry-composed render pipeline with a forward-rendering path
+
+## My Contributions
+
+### 1. Skeletal Debug Render Pass and Bone Visualisation
+
+- Added `FSkeletalDebugPass` as a separate editor render pass and registered it with the pass, pipeline, and shader registries
+- Collected bone world transforms and parent indices from scene proxies and submitted them through the overlay path
+- Built cone meshes to represent bone nodes and line batches to show parent–child relationships
+- Allocated an independent constant buffer for each bone and connected draw-command shaders, meshes, render states, and sort keys
+- Added a `SkeletalDebug` show flag and editor UI so mesh and skeleton visibility could be controlled independently
+- Adjusted cone scale and debug-line depth testing for correct display across model sizes and occlusion relationships
+
+Representative commits: [`60142eb6`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/60142eb6bedae7477692d1207a6f176b94e2dd07), [`51eee6dc`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/51eee6dc74ad5b1632e415764a6bcbfd1f49b5c8), [`fbb11a5f`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/fbb11a5fd8ee63775f89eeace4915583d487e49a)
+
+### 2. Skeletal-Mesh Render Data and GPU-Resource Stabilisation
+
+- Clarified buffer ownership and reference relationships among `FSkeletalSubMesh`, `FSkeletalMeshBuffer`, and `FMeshSectionRenderData`
+- Connected each CPU-updated skinned SubMesh vertex buffer to section draw data in the scene proxy
+- Correctly mapped material section indices to the complete override-material slot list and fixed draw-command sort keys
+- Fixed material-base-index corruption following an invalid SubMesh buffer
+- Prevented crashes when loading a new skeletal mesh into a Component that already owned one
+- Fixed a render-buffer leak during skeletal SubMesh asset shutdown
+- Integrated shader-contract-driven runtime vertex buffers with Component-level ownership and cleanup
+
+Representative commits: [`05ef2395`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/05ef2395fa13dcc0c374831d3c1f8c4c3ae35012), [`e31657a6`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/e31657a6fc8cd4af6e32d12303200579405501ec), [`e66f09d1`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/e66f09d1ed12132e421a1a29da11ece958a93e08), [`83179c79`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/83179c79d98af773dedf35b63c0afc11e2586e21)
+
+### 3. FBX Static-Mesh Import and Coordinate-System Correction
+
+- Implemented `ImportStaticAndCacheAll` to traverse every mesh node in the FBX scene tree and convert it into static geometry
+- Triangulated polygons and extracted positions, normals, UVs, tangents, and material sections
+- Normalised FBX scenes to the engine's Z-up, X-forward, left-handed coordinate system and metre units
+- Baked node global and geometric transforms into vertices and reversed triangle winding for negative determinants
+- Merged vertices, indices, and sections from multiple mesh nodes into one static-mesh asset
+- Consolidated material slots by slot name and connected the binary-cache output path
+- Corrected axis-orientation mismatches between skeletal meshes and bones so poses and geometry aligned
+
+Representative commits: [`4de83bd0`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/4de83bd05508376ea070a7a471f867b500459c88), [`0839c4a1`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/0839c4a16db4636e6dd1f678a79733dd70c462b5), [`a06149d3`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/a06149d3a069e7e17fd37e129efde6a770aa0452)
+
+### 4. Precise Picking of Deformed Skeletal Meshes
+
+- Added a broad phase that first tests the ray against the world AABB
+- Transformed the ray into Component-local space and tested it against the currently CPU-skinned vertex and index arrays
+- Selected the nearest result returned by a Möller–Trumbore-based `RaycastTriangles` implementation
+- Recorded the actual `USkinnedMeshComponent` in the hit result and forwarded it to editor selection and the Details panel
+- Based picking on the currently deformed surface rather than the reference mesh
+
+Representative commit: [`ca537f5a`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/ca537f5a571804f8a9571a504fc5533b177ed417)
+
+### 5. Viewer-to-Scene Spawning and Pose Persistence
+
+- Added **Spawn in Scene** to the Skeletal Mesh Viewer and implemented the `ASkeletalMeshActor` creation path
+- Copied the viewer's active mesh and bone-local matrices into the new scene Component so the edited pose was preserved
+- Registered the Actor with the Editor World and octree for immediate rendering and selection
+- Serialised the skeletal-mesh path, material slots, current bone-local matrices, and debug-pose mode
+- Reconnected assets and restored saved material overrides and poses during load and duplication
+- Added the missing Matrix property type to scene JSON and aligned `PostEditProperty` responsibility with the shared `USkinnedMeshComponent` flow
+- Prepared `w10.Scene` and `w10_demo.Scene` to demonstrate viewer editing and scene placement
+
+Representative commits: [`7f8f7869`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/7f8f786951e984bb15b18df501ff90286a7a6385), [`ff0fa51b`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/ff0fa51b1d6221946479692800313428f69635c0), [`59b5027b`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/59b5027bf12df0207dd8f04b9398606aec975ca9), [`cc83df4a`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/cc83df4a12701805825dbced5d8fca01bca2461a), [`f1cdc2de`](https://github.com/MozziDog/Jungle_Week10_Team6/commit/f1cdc2de0668ab2f4be7bd5509b96342169203af)
+
+## Skeletal Asset and Rendering Architecture
+
+```text
+FBX File
+   │
+   ▼
+FFBXImporter
+   ├─ Static Geometry ── Node Transform Bake ── UStaticMesh
+   │
+   └─ Skeletal Geometry
+        ├─ USkeleton ── Bone Hierarchy / Bind Pose
+        ├─ USkeletalMesh ── SubMesh / Section / Material
+        └─ Bone Index / Weight
+                    │
+                    ▼
+          USkinnedMeshComponent
+      Current Bone Local / Global Matrix
+                    │
+              CPU Skinning
+                    │
+          Skinned Vertex Buffer
+                    │
+                    ▼
+       FSkeletalMeshSceneProxy
+       Per-Section Material / Shader Selection
+                    │
+                    ▼
+      Forward Render Draw Commands
+
+Skeletal Mesh Viewer
+   ├─ Bone Hierarchy / Picking / Gizmo
+   ├─ Reference / FBX Local Pose Debug
+   ├─ SkeletalDebugPass ── Cone + Parent Line
+   └─ Spawn in Scene ── Copy Pose ── Scene Save
+```
+
+## Editor Workflow
+
+1. Import an FBX asset to generate static-mesh or skeletal-mesh and skeleton caches.
+2. Open the skeletal-mesh asset in the dedicated viewer.
+3. Select a bone in the hierarchy or pick it in the viewport.
+4. Edit the selected bone's local transform with the gizmo and inspect the skinned result.
+5. Compare geometry and debug poses using **Mesh / Skeleton** and **FBX Local Bones**.
+6. Restore the reference pose with **Reset Pose**.
+7. Use **Spawn in Scene** to place the current mesh and edited pose in the Editor World.
+8. Save and reload the scene to verify persistence of the skeletal mesh, materials, and pose.
+
+## Project Structure
+
+```text
+.
+├─ PacificEngine.sln
+├─ PacificEngine/
+│  ├─ Asset/Content/
+│  │  ├─ Models/                       # FBX and conversion-source assets
+│  │  ├─ Materials/                    # Imported and test materials
+│  │  └─ Scene/                        # FBX tests and Week 10 demos
+│  ├─ Settings/
+│  ├─ Shaders/Render/Editor/
+│  │  └─ SkeletalDebug.hlsl
+│  └─ Source/
+│     ├─ Editor/
+│     │  ├─ UI/EditorSkeletalMeshViewerPanel.*
+│     │  └─ Viewport/                  # Skeletal-mesh preview viewer
+│     └─ Engine/
+│        ├─ Animation/                  # Early AnimationSequence work
+│        ├─ Component/                  # Skinned/skeletal mesh Components
+│        ├─ Mesh/                       # FBX importer, skeleton, skeletal mesh
+│        └─ Render/
+│           ├─ Execute/Passes/Editor/   # SkeletalDebugPass
+│           ├─ Scene/Proxies/Primitive/
+│           └─ RHI/D3D11/Buffers/
+├─ Scripts/
+├─ GenerateProjectFiles.bat
+├─ EditorBuild.bat
+├─ GameBuild.bat
+└─ DemoBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- NuGet package restore
+- Autodesk FBX SDK runtime and libraries included in the repository
+
+### Build Instructions
+
+1. Run `GenerateProjectFiles.bat` if Visual Studio project files need to be generated.
+2. Open `PacificEngine.sln` in Visual Studio.
+3. Restore the NuGet package `directxtk_desktop_win10`.
+4. Build and run `Debug | x64` or `Release | x64`.
+
+Depending on the build configuration, the project links `libfbxsdk.lib` from `ThirdParty/FBX_SDK/lib/debug` or `release` and copies the FBX SDK DLL into the runtime directory.
+
+## Current Status and Limitations
+
+- Targets Windows and DirectX 11.
+- Skinning currently recalculates vertices on the CPU and updates GPU buffers, so its cost increases with complex meshes or many instances.
+- `UAnimationSequence` and FBX animation extraction are explicitly marked as untested drafts in the code and should not be treated as complete animation-playback functionality.
+- The Skeletal Mesh Viewer's **Save** button remains an unimplemented placeholder. Pose persistence uses **Spawn in Scene** followed by the normal scene-save path.
+- Shader-specific runtime vertex-buffer caches are released when their owning objects are destroyed, but cache cleanup during repeated shader/material replacement could be improved further.
+- Existing deferred/forward decal paths remain documented separately in `KNOWN_ISSUES.md` and are outside the Week 10 skeletal-work scope.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [MozziDog/Jungle_Week10_Team6](https://github.com/MozziDog/Jungle_Week10_Team6).
+- The original repository was forked from [chodott/Jungle_Week9_Team2](https://github.com/chodott/Jungle_Week9_Team2), so history before 8 May 2026 was excluded from the Week 10 individual-contribution accounting.
+- The prior private snapshot and the original `main` contained identical sets of 1,504 file blobs; neither had a root README.
+- The 27 top-level commits attributed to Rocketstein during the core development period include merges and squashes. Contributions were therefore identified by reviewing commit messages, changed files, and the final code together.
+- Bone-hierarchy and gizmo work in the Skeletal Mesh Viewer, skeletal FBX import, CPU skinning, and final render-pipeline integration also include contributions from other team members.
+
+---
+
+## 한국어
+
 # Week 10 — Pacific Engine: Skeletal Mesh & FBX
 
 > DirectX 11 기반 커스텀 엔진에 FBX Asset Pipeline, Skeletal Mesh Skinning과 전용 편집 도구를 구축한 프로젝트입니다.  
