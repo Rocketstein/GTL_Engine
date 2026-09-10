@@ -1,3 +1,219 @@
+> **Languages:** English · [한국어](#한국어)
+
+# Week 12 — Krafton Engine: Cascade Particle System
+
+> A project that adds Cascade-style particle simulation, rendering, and a dedicated editor to a custom DirectX 11 engine.  
+> This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the [original collaborative project](https://github.com/Rocketstein/Jungle_Week12_Team2).
+
+## Project Overview
+
+Building on the Week 11 engine, we implemented a Cascade-style particle system organised as `ParticleSystem → Emitter → LODLevel → Module`. Particles are simulated on the CPU and converted into render snapshots. Scene proxies then pack those snapshots into vertex, index, and instance data for sprite, mesh, beam, or ribbon rendering before submitting them to DirectX 11 render passes.
+
+The final team project supports modular emitters, LOD, a particle editor, collision and events, sprite/mesh/beam/ribbon rendering, and profiling.
+
+- **Core development period:** 22–28 May 2026
+- **Development environment:** Windows, Visual Studio 2022, C++20
+- **Key technologies:** DirectX 11, HLSL, CPU particle simulation, GPU instancing, Dear ImGui
+- **Areas of responsibility:** Particle render bridge, sprite and mesh packing, sorting, screen alignment, blend routing, and beam particles
+- **Project type:** Team project / portfolio focused on individual contributions
+
+## Key Features
+
+- Cascade-style asset hierarchy built from `UParticleSystem`, emitters, LOD levels, and modules
+- Spawn-rate and burst control, lifetime, location, velocity, acceleration, rotation, size, and colour modules
+- Constant, uniform, and curve-based float/vector distributions
+- Sprite, instanced-mesh, beam, and ribbon particle rendering
+- SubUV flipbooks, six screen-alignment modes, and per-particle rotation
+- Particle- and emitter-level sorting with opaque, alpha-blended, and additive paths
+- Beam source, target, noise, tangent curves, tapering, texture tiling, and multiple sheets
+- Mesh and ribbon TypeData, orbit, and collision modules
+- Spawn, death, collision, and burst events with event receivers
+- Distance-based LOD, emitter/module insertion, deletion and reordering, and a curve editor
+- Particle profiling across CPU simulation, packing, and upload stages
+- Particle-asset serialisation, a preview viewport, and scene placement
+
+## My Contributions
+
+### 1. Snapshot Bridge Between CPU Simulation and the Renderer
+
+- Implemented `FParticleDataContainer` to copy raw particle data and active indices from CPU emitters into a one-frame snapshot
+- Allocated particle data as a single 16-byte-aligned memory block, placing the index region after the same block
+- Disabled copying and provided move construction, move assignment, and `Free` on destruction to make snapshot ownership explicit
+- Defined per-type replay data and render-side dynamic-data contracts for sprites, meshes, beams, and ribbons
+- Connected `UParticleSystemComponent` simulation output to `FParticleSystemSceneProxy::UpdateDynamicData`
+- Configured the proxy to release the previous frame's snapshot, take ownership of the new one, and update mesh, material, and per-viewport state
+
+Representative commits: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/65f128d08682ed130540ae15ddf9b926ba33384c), [`1b2999ff`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/1b2999ff7cf06f9544a9d460a057b2094e71786b), [`c0095688`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/c0095688ce691c013707cc101661e4c038f51c89)
+
+### 2. Sprite Packing and GPU Instancing for Mesh Particles
+
+- Expanded each sprite into four camera-facing quad vertices and six indices, packing them into shared dynamic buffers
+- Allowed multiple sprite emitters to share one buffer while retaining per-emitter `FirstIndex / IndexCount` sections
+- Regenerated the shared index pattern only when the maximum particle count increased and otherwise updated primarily vertex data each frame
+- Reduced repeated allocation and uploads through pre-`reserve`, empty-emitter early-outs, and conditional dirty flags
+- Packed per-mesh-particle transforms, colours, and dynamic parameters into an instance buffer
+- Added a second vertex buffer, instance stride/count/start, and a `DrawIndexedInstanced` path to `FDrawCommand`
+- Propagated LOD levels in mesh-emitter snapshots and bound static-mesh geometry together with instance data
+
+Representative commits: [`65f128d0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/65f128d08682ed130540ae15ddf9b926ba33384c), [`b483c6ac`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/b483c6aca622d144b5b46045b32b7e00f96d96f8), [`559ab7b2`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/559ab7b2eb33c95ad9a623f1333e54bdc1757ffd), [`2c3dbc2b`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/2c3dbc2b130ad4d24c1132da560a11a624550a2b)
+
+### 3. Particle/Emitter Sorting, Screen Alignment, and Blend Routing
+
+- Defined sorting interfaces based on view-projection depth, camera distance, and particle age
+- Sorted active sprite and mesh particle indices per view to produce back-to-front rendering for transparent particles
+- Implemented cross-emitter priority by stable-sorting a separate section-index map rather than mutating the physical emitter array
+- Rebuilt emitter order and section draws only when `SortPriority` changed through a dirty flag
+- Implemented Square, Rectangle, Velocity, Away From Center, Type Specific, and Facing Camera Position alignment modes in HLSL
+- Added particle rotation, SubUV frame calculation, and texture-alpha/luminance-based alpha threshold and power controls
+- Routed each emitter to the opaque pass or the alpha/additive states of the alpha-blend pass according to material blend mode
+- Fixed billboard winding, horizontal sprite inversion, and transparency-clipping errors
+
+Representative commits: [`94fa4bb7`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/94fa4bb7e80071b689870d8c753560a3b6f175cd), [`202826c0`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/202826c09973b50ac6cd818653b94a59c7acc27f), [`94f7bc81`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/94f7bc81370c79fa4dc696146983347ddb52f3e5), [`affef204`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/affef20482c6b382dfedaec3e8e1c1ef99b8b1e4)
+
+### 4. Beam TypeData, Runtime Instances, and Dynamic Geometry
+
+- Adapted Cascade's `ParticleModuleTypeDataBeam2` structure to the engine's reflection, LOD, and serialisation systems
+- Added distance/target modes, interpolation points, maximum beam count, travel speed, width, texture tiling, and multiple-sheet controls
+- Generated source/target positions, tangent and strength, colour and alpha, width and taper, and progress as replay data for each beam particle
+- Built camera-facing quad strips from source/target tangent curves and intermediate noise points
+- Crossed multiple sheets and packed per-segment vertices and indices into a shared dynamic beam buffer
+- Applied full/partial tapering and distance-based texture tiling
+- Maintained `bAlwaysOn` beam counts and updated sibling-emitter endpoints and beam progress
+- Connected beam shaders, a default material, smoke tests, and particle-asset save/load
+
+Representative commits: [`4e3bac5c`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/4e3bac5c9ad86298b49e5b6a96469674ef17e81d), [`a938b950`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/a938b950fc23d15c48ef6f71beb87b063e24ee9e)
+
+### 5. Beam Source, Target, and Noise Modules with Rendering Integration
+
+- Implemented a reflectable beam-module base and source, target, and noise modules as UObjects
+- Resolved source and target positions in Default, User Set, and Sibling Emitter modes, including absolute/local-space conversion
+- Stored endpoint/tangent locks and user-defined tangents and strengths in particle payloads, updating them during spawn and tick
+- Generated intermediate beam noise and target offsets from frequency, range, speed, and lock time
+- Interpolated noise offsets over time and combined them with Hermite-form curves to create an animated beam centreline
+- Stored noise data in per-emitter arenas and reconnected per-particle-slot slices to preserve pointer stability
+- Exposed beam modules and TypeData choices in the Particle Editor
+- Added a viewport show flag and render-collector gate for global particle visibility
+
+Representative commits: [`a938b950`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/a938b950fc23d15c48ef6f71beb87b063e24ee9e), [`d100167e`](https://github.com/Rocketstein/Jungle_Week12_Team2/commit/d100167e70dbed9bd25bde9b52101daf52dbc7b0)
+
+## Particle Simulation and Rendering Architecture
+
+```text
+UParticleSystem Asset
+        │
+        ├─ UParticleEmitter
+        │      └─ UParticleLODLevel
+        │             ├─ Required / Spawn
+        │             ├─ Lifetime / Location / Velocity
+        │             ├─ Size / Colour / Orbit / Collision
+        │             └─ TypeData: Sprite / Mesh / Beam / Ribbon
+        │
+        ▼
+UParticleSystemComponent
+ FParticleEmitterInstance CPU Simulation
+        │
+        ▼
+FDynamicEmitterReplayData
+ Particle Data + Active Indices + Render Settings
+        │
+        ▼
+FParticleSystemSceneProxy
+        │
+        ├─ SpritePacker ── Quad Vertices / Shared Index Pattern
+        ├─ MeshPacker ──── Instance Buffer
+        ├─ BeamPacker ──── Camera-Facing Multi-Sheet Strip
+        └─ RibbonPacker ── Trail Strip
+        │
+        ▼
+Emitter Priority → Particle Sort → Blend Route
+        │
+        ▼
+DrawCommand
+ DrawIndexed / DrawIndexedInstanced
+        │
+        ▼
+Opaque or AlphaBlend Render Pass
+```
+
+A frame snapshot separates CPU simulation from the render proxy, so the renderer does not directly traverse UObject or module state. Sprites, beams, and ribbons pack view-dependent geometry on the CPU; mesh particles reuse static geometry and update only instance data.
+
+## Particle Editor Workflow
+
+1. Create or open a Particle System asset in the Content Drawer.
+2. Add an emitter and select Sprite, Mesh, Beam, or Ribbon TypeData.
+3. Combine Required, Spawn, Lifetime, Location, Velocity, Size, Colour, and other modules.
+4. Add LOD levels when needed and edit their distance-specific module settings.
+5. Play or restart the simulation in the preview viewport and inspect the result.
+6. Edit distribution curves in the Curve panel.
+7. Reorder, duplicate, or delete emitters and modules, then save the asset.
+8. Assign the asset as the template of a `UParticleSystemComponent` to use it in a scene.
+9. Toggle all particle rendering through the viewport Particle show flag.
+
+## Project Structure
+
+```text
+.
+├─ KraftonEngine.sln
+├─ Docs/
+│  ├─ Particle_render_plan.md
+│  └─ W12_particle/                    # Cascade architecture and rendering research
+├─ KraftonEngine/
+│  ├─ Asset/
+│  │  ├─ Materials/Editor/             # Sprite, mesh, beam, and ribbon materials
+│  │  └─ Particle/                     # Particle assets and textures
+│  ├─ Shaders/Particle/                # Per-type HLSL
+│  └─ Source/
+│     ├─ Editor/UI/Asset/
+│     │  └─ ParticleEditorWidget.*
+│     └─ Engine/
+│        ├─ Component/ParticleSystemComponent.*
+│        ├─ Particle/
+│        │  ├─ BeamModule/              # Source, target, noise
+│        │  ├─ TypeData/                # Beam and ribbon
+│        │  └─ Particle*                # Asset, LOD, module, instance
+│        ├─ Profiling/ParticleStats.*
+│        └─ Render/
+│           ├─ Particle/ParticleDynamicData.*
+│           └─ Proxy/ParticleSystemSceneProxy.*
+├─ Scripts/
+├─ GenerateProjectFiles.bat
+├─ GameBuild.bat
+└─ ReleaseBuild.bat
+```
+
+## Building and Running
+
+### Requirements
+
+- Windows 10/11
+- Visual Studio 2022
+- MSVC v143 and Windows 10 SDK
+- DirectX 11-capable GPU
+- NuGet package restore
+
+The project uses the NuGet packages `directxtk_desktop_win10` and `NVIDIA.PhysX`, together with repository-provided Lua, RmlUi, FMOD, and FBX SDK libraries.
+
+### Build Instructions
+
+1. Run `GenerateProjectFiles.bat` if Visual Studio project files need to be generated.
+2. Open `KraftonEngine.sln` in Visual Studio.
+3. Restore NuGet packages.
+4. Build and run `Debug | x64` or `Release | x64`.
+
+Use `GameBuild.bat` for a game-runtime build and `ReleaseBuild.bat` for a distributable build.
+
+## Notes
+
+- The complete collaboration history and team-wide changes are available in [Rocketstein/Jungle_Week12_Team2](https://github.com/Rocketstein/Jungle_Week12_Team2).
+- The original repository was forked from [keonwookang0914/Jungle_Week11_Team4](https://github.com/keonwookang0914/Jungle_Week11_Team4), so history before 22 May 2026 was excluded from Week 12 individual-contribution accounting.
+- Of 1,924 file blobs, the previous private snapshot differed from the original `main` only in `KraftonEngine/Settings/Editor.ini` and `KraftonEngine/Settings/imgui.ini`; neither repository had a root README.
+- The 26 top-level commits attributed to Rocketstein during the core development period include merges and squashes. Contributions were therefore identified by reviewing commit messages, changed files, and the final code together.
+- Particle CPU simulation, the editor, LOD, ribbon rendering, collision/events, and final integration also include work by other team members.
+
+---
+
+## 한국어
+
 # Week 12 — Krafton Engine: Cascade Particle System
 
 > DirectX 11 기반 커스텀 엔진에 Cascade 스타일 Particle Simulation, Rendering과 전용 Editor를 구축한 프로젝트입니다.  
