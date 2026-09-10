@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # 🕹️ [Head Soccer] Play Football or Die Trying!
@@ -38,6 +40,8 @@ The win/loss result shown on the results screen is presented from Player 1's per
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # 🕹️ \[Head Soccer] 슬슬 축구를 하지 않으면 죽는다!
 

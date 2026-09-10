@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 12 — Krafton Engine: Cascade Particle System
@@ -213,6 +215,8 @@ Use `GameBuild.bat` for a game-runtime build and `ReleaseBuild.bat` for a distri
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 12 — Krafton Engine: Cascade Particle System
 

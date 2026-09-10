@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 10 — Pacific Engine: Skeletal Mesh & FBX
@@ -209,6 +211,8 @@ Depending on the build configuration, the project links `libfbxsdk.lib` from `Th
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 10 — Pacific Engine: Skeletal Mesh & FBX
 

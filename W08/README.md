@@ -1,3 +1,5 @@
+<a id="english"></a>
+
 > **Languages:** English · [한국어](#한국어)
 
 # Week 8 — Krafton Engine: Shadow Mapping
@@ -204,6 +206,8 @@ Use `DemoBuild.bat` or `ReleaseBuild.bat` to prepare deployable executables and 
 ---
 
 ## 한국어
+
+> **Languages:** [English](#english) · 한국어
 
 # Week 8 — Krafton Engine: Shadow Mapping
 
