@@ -2,7 +2,7 @@
 
 > **Languages:** English · [한국어](#한국어)
 
-# Week 14 — Krafton Engine Final Game: Game Flow, Lock-On & Transitions
+# Week 14 — Sendou: Game Flow, Lock-On & Transitions
 
 > A Sekiro-inspired action-combat game built with a custom DirectX 11 engine.  
 > This repository is a portfolio snapshot highlighting the work of **Rocketstein (Hyungjun Kim)** within the Week 14 results of the [original collaborative project](https://github.com/Chanil-Chong/Jungle_Week14_Team6).
