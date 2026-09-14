@@ -2,7 +2,7 @@
 
 > **Languages:** English · [한국어](#한국어)
 
-# Week 9 — Lunatic Engine
+# Week 9 — Engine Dive
 
 > A three-lane runner built by combining Lua gameplay logic with a custom C++ DirectX 11 engine.
 
