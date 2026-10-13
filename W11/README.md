@@ -35,7 +35,6 @@ Week 11 was not simply an exercise in adding macros. Its core achievement was a 
 
 ### 1. Property-Reflection Foundation and Code-Generation Pipeline
 
-- Improved `GenerateProjectFiles.py` so it automatically discovers the existing project structure and includes generated sources in the build
 - Built a pipeline that parses reflection markers in headers and emits `.generated.h` and `.gen.cpp` files
 - Implemented class, struct, and enum registries, property-type classification, and static registrar generation
 - Configured `GENERATED_BODY` to expose `StaticClass`, `StaticStruct`, parent-type information, and registrar access
