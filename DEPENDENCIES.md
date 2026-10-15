@@ -1,3 +1,59 @@
+# Assets and External Dependencies
+
+This repository is a source snapshot prepared for public release. The original files are preserved in the owner's private repository and local staging area.
+
+## Excluded Content
+
+- Assets: images and textures, meshes such as OBJ/FBX files, MTL files and materials, fonts, audio, scenes, and Unreal-format packages
+- Build artifacts: EXE, DLL, LIB, PDB, OBJ, caches, `Bin`, `Build`, `Intermediate`, and `x64`
+- Restored package content: `packages` and the bundled Python runtime
+- Commercial or restricted SDKs: FMOD and Autodesk FBX SDK
+- Older vendored DirectXTK copies whose licenses could not be reliably matched
+- Prebuilt binaries bundled with the source of PhysX, NvCloth, RmlUi, LuaJIT, SoLoud, and other libraries
+
+## Included Third-Party Code
+
+| Component | Included Content | Verified License Terms |
+| --- | --- | --- |
+| Dear ImGui `1.92.6 WIP` / `1.92.7 WIP` | Core source, Win32/DX11 backends | MIT |
+| SoLoud | Public headers from W01 | zlib/libpng-style license |
+| SimpleJSON | Single header from W02–W03 and W06–W14 | WTFPL v2 |
+| nlohmann/json `3.12.0` | Single header from W04–W05 | MIT |
+| stb_image `2.30` | Header and implementation file from W05 | Public Domain or MIT |
+| miniaudio `0.11.22` | Single-file library from W09 | Public Domain or MIT-0 |
+| Lua `5.4.8` | Source and headers from W10 | MIT |
+| LuaJIT `2.1.1774896198` | Public headers only from W11–W14 | MIT |
+| sol2 `3.2.3` / `3.5.0` | Headers from W09–W14 | MIT |
+| RmlUi | Public headers only from W11–W14 | MIT |
+| imgui-node-editor `0.9.4` | Source and headers from W13–W14 | MIT |
+| NVIDIA PhysX `4.1.2` | Source, headers, and build configuration from W13; headers from W14 | BSD-3-Clause |
+| NVIDIA NvCloth `1.1.6` | Source and headers from W13–W14 | Nvidia Source Code License (1-Way Commercial) |
+| NVIDIA PxShared | Headers bundled with PhysX in W13; headers from W14 | PhysX BSD-3-Clause or Nvidia Source Code License (see the notice for each copy) |
+
+The license file or in-file notice for each copy has been preserved. Font Awesome and NanumGothic fonts, generated icon headers, and separate extension code found in the ImGui directories have not been included. See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for detailed paths and original distribution sources.
+
+## Major Dependencies by Week
+
+| Week | Major Dependencies Identified in the Original Files |
+| --- | --- |
+| W01 | Dear ImGui, SoLoud, DirectXTK Desktop 2019 `2025.10.28.2` |
+| W02 | Dear ImGui, SimpleJSON |
+| W03 | Dear ImGui, SimpleJSON, DirectXTK |
+| W04 | Dear ImGui, nlohmann/json, DirectXTK Desktop Win10 `2025.10.28.2` |
+| W05 | Dear ImGui, stb_image, nlohmann/json |
+| W06–W08 | Dear ImGui, SimpleJSON, DirectXTK Desktop Win10 `2025.10.28.2` |
+| W09 | Above dependencies + miniaudio, LuaJIT Native `2.1.1739213504`, sol2 |
+| W10 | Above dependencies + FMOD, Autodesk FBX SDK, Lua, sol2 |
+| W11–W12 | Above dependencies + RmlUi, NVIDIA PhysX `4.1.229882250`, DirectXTK Desktop Win10 `2026.5.8.1` |
+| W13 | Above dependencies + PhysX source, PxShared, NvCloth, imgui-node-editor; DirectXTK `2025.10.28.2` |
+| W14 | Above dependencies + PxShared, NvCloth, imgui-node-editor; DirectXTK `2025.10.28.2` |
+
+You must obtain the excluded SDKs and packages from their original distributors and install them in accordance with their respective licenses. For weeks that retain a `packages.config` file, you can use it to check the NuGet versions. Path references in the project files have been left unchanged to document the original directory structure, so you must match those paths when restoring the project locally.
+
+---
+
+**한국어 원문**
+
 # 에셋과 외부 의존성
 
 이 저장소는 공개용 소스 스냅샷입니다. 원본 파일은 소유자의 비공개 저장소와 로컬 스테이징에 보존되어 있습니다.

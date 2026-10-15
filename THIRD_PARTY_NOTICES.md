@@ -1,3 +1,144 @@
+# Third-party Notices
+
+This document lists the third-party source files and headers actually included in the public snapshot. Do not remove the license files accompanying each copy or the notices embedded in individual files.
+
+## Dear ImGui
+
+MIT license. Only the core source files and Win32/DX11 backends are included.
+
+- `W01/GTL/ImGui`
+- `W02/Week2/ImGui`
+- `W03/ImGui`
+- `W04/Editor/Source/ThirdParty/ImGui`
+- `W05/Engine/Source/ThirdParty/ImGui`
+- `W05/Engine/ThirdParty/ImGui`
+- `W06/NipsEngine/ThirdParty/ImGui`
+- `W07/NipsEngine/ThirdParty/ImGui`
+- `W08/KraftonEngine/ThirdParty/ImGui`
+- `W09/LunaticEngine/ThirdParty/ImGui`
+- `W10/PacificEngine/ThirdParty/ImGui`
+- `W11/KraftonEngine/ThirdParty/ImGui`
+- `W12/KraftonEngine/ThirdParty/ImGui`
+- `W13/KraftonEngine/ThirdParty/ImGui`
+- `W14/KraftonEngine/ThirdParty/ImGui`
+
+Upstream: <https://github.com/ocornut/imgui>
+
+The copies identify themselves as `1.92.6 WIP` or `1.92.7 WIP`. Fonts, generated icon headers, and separate extension code that accompanied the original folders have been excluded.
+
+## SoLoud
+
+zlib/libpng-style license. Only the headers in `W01/GTL/soloud/include` are included; `soloud_static.lib` has been excluded.
+
+Upstream: <https://github.com/jarikomppa/soloud>
+
+## SimpleJSON
+
+WTFPL v2. The following single-header copies and the `LICENSE.txt` file in each directory are included.
+
+- `W02/Week2/SimpleJSON`
+- `W03/SimpleJSON`
+- `W06/NipsEngine/ThirdParty/SimpleJSON`
+- `W07/NipsEngine/ThirdParty/SimpleJSON`
+- `W08/KraftonEngine/ThirdParty/SimpleJSON`
+- `W09/LunaticEngine/ThirdParty/SimpleJSON`
+- `W10/PacificEngine/ThirdParty/SimpleJSON`
+- `W11/KraftonEngine/ThirdParty/SimpleJSON`
+- `W12/KraftonEngine/ThirdParty/SimpleJSON`
+- `W13/KraftonEngine/ThirdParty/SimpleJSON`
+- `W14/KraftonEngine/ThirdParty/SimpleJSON`
+
+Upstream: <https://github.com/nbsdx/SimpleJSON>
+
+## nlohmann/json
+
+MIT license, version `3.12.0`.
+
+- `W04/Engine/Source/ThirdParty/Json`
+- `W05/Engine/Source/ThirdParty/nlohmann`
+- `W05/Engine/ThirdParty/nlohmann`
+
+Upstream: <https://github.com/nlohmann/json>
+
+## stb_image
+
+Available under Public Domain or MIT terms. The license notices embedded in the files have been preserved.
+
+- `W05/Engine/Source/ThirdParty/stb`
+- `W05/Engine/ThirdParty/stb`
+
+Upstream: <https://github.com/nothings/stb>
+
+## miniaudio
+
+Available under Public Domain or MIT-0 terms. The license notices embedded in the files have been preserved.
+
+- `W09/LunaticEngine/ThirdParty/miniaudio`
+
+Upstream: <https://github.com/mackron/miniaudio>
+
+## Lua and LuaJIT
+
+MIT license.
+
+- Lua `5.4.8`: `W10/PacificEngine/ThirdParty/Lua/src`
+- LuaJIT `2.1.1774896198` headers: `W11/KraftonEngine/ThirdParty/lua/include` through `W14/KraftonEngine/ThirdParty/lua/include`
+
+LuaJIT DLL/LIB copies are not included.
+
+Upstream: <https://www.lua.org/> and <https://luajit.org/>
+
+## sol2
+
+MIT license.
+
+- `W09/LunaticEngine/ThirdParty/sol2` (`3.5.0`)
+- `W10/PacificEngine/ThirdParty/Sol` (`3.2.3`)
+- `W11/KraftonEngine/ThirdParty/sol2` through `W14/KraftonEngine/ThirdParty/sol2` (`3.5.0`)
+
+Upstream: <https://github.com/ThePhD/sol2>
+
+## RmlUi
+
+MIT license. Only the headers in `KraftonEngine/ThirdParty/RmlUi/Include` for `W11`–`W14` are included. Debug/Release DLL, LIB, and EXP copies have been excluded. Separate MIT notices for the included container implementations have also been preserved.
+
+Upstream: <https://github.com/mikke89/RmlUi>
+
+## imgui-node-editor
+
+MIT license, version `0.9.4`.
+
+- `W13/KraftonEngine/ThirdParty/imgui-node-editor`
+- `W14/KraftonEngine/ThirdParty/imgui-node-editor`
+
+Upstream: <https://github.com/thedmd/imgui-node-editor>
+
+## NVIDIA PhysX
+
+BSD-3-Clause license, version `4.1.2`.
+
+- `W13/KraftonEngine/ThirdParty/PhysX`: source files, headers, build configuration, and `LICENSE.md`
+- `W14/KraftonEngine/ThirdParty/PhysX`: headers and `LICENSE.md`
+
+The W13 copy includes build-script changes for Visual Studio 2022 support and a `vc17win64` preset. The notices embedded in individual files of the bundled Targa code and CMake modules have also been preserved. Prebuilt DLL/LIB files, `vswhere.exe`, documentation images, and sample assets are not included.
+
+Upstream: <https://github.com/NVIDIAGameWorks/PhysX/tree/4.1>
+
+## NVIDIA NvCloth and PxShared
+
+Nvidia Source Code License (1-Way Commercial). Distribution requires the full license text to be provided and existing copyright, patent, trademark, and attribution notices to remain unchanged.
+
+- NvCloth `1.1.6`: `W13/KraftonEngine/ThirdParty/NvCloth`, `W14/KraftonEngine/ThirdParty/NvCloth`
+- PxShared: `W14/KraftonEngine/ThirdParty/PxShared`
+
+NvCloth's `PsAllocator.h` contains a one-line change for compatibility with standard C++ headers. DLL/LIB copies are not included. The `pxshared/include` directory within the W13 PhysX tree is included under that copy's PhysX BSD-3-Clause notice.
+
+Upstream: <https://github.com/NVIDIAGameWorks/NvCloth>
+
+---
+
+**한국어 원문**
+
 # Third-party notices
 
 이 문서는 공개본에 실제로 포함된 외부 소스와 헤더를 기록합니다. 각 사본에 포함된 라이선스 파일 또는 파일 내부 고지를 제거하지 마세요.
